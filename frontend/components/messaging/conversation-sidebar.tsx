@@ -1,10 +1,9 @@
 "use client";
 
-import { Edit3, MoreVertical, Search, Settings, UsersRound } from "lucide-react";
+import { Edit3, ListFilter, MoreHorizontal, Search, UsersRound } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { ConversationPreview } from "@/lib/api";
-import type { User } from "@/lib/api";
 import { Avatar } from "@/components/ui/avatar";
 import { IconButton } from "@/components/ui/icon-button";
 
@@ -15,7 +14,6 @@ type ConversationSidebarProps = {
   onOpenSettings: () => void;
   onSelect: (conversationId: string) => void;
   selectedConversationId: string | null;
-  user: User;
   isRealtimeConnected: boolean;
   onlineUserIds: Set<string>;
 };
@@ -37,7 +35,6 @@ export function ConversationSidebar({
   onOpenSettings,
   onSelect,
   selectedConversationId,
-  user,
   isRealtimeConnected,
   onlineUserIds,
 }: ConversationSidebarProps) {
@@ -53,52 +50,51 @@ export function ConversationSidebar({
   }, [conversations, query]);
 
   return (
-    <div className="flex h-full flex-col">
-      <header className="flex items-center justify-between px-5 pb-3 pt-5">
-        <div className="flex items-center gap-3">
-          <Avatar avatarKey={user.avatar_key} name={user.display_name} size={36} />
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">Signal</h1>
-            <p className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400">
-              <span
-                className={`size-1.5 rounded-full ${isRealtimeConnected ? "bg-emerald-500" : "bg-slate-300"}`}
-              />
-              {isRealtimeConnected ? "Connected" : "Reconnecting"}
-            </p>
-          </div>
+    <div className="signal-conversation-sidebar">
+      <header className="signal-conversation-sidebar__header">
+        <div>
+          <h1>Chats</h1>
+          <p className="signal-connection-state">
+            <span className={isRealtimeConnected ? "signal-presence signal-presence--online" : "signal-presence"} />
+            {isRealtimeConnected ? "Connected" : "Reconnecting"}
+          </p>
         </div>
         <div className="flex items-center gap-1">
           <IconButton label="New message" onClick={onNewMessage}>
             <Edit3 size={19} />
           </IconButton>
           <IconButton label="Settings" onClick={onOpenSettings}>
-            <Settings className="hidden sm:block" size={19} />
-            <MoreVertical className="sm:hidden" size={19} />
+            <MoreHorizontal size={21} />
           </IconButton>
         </div>
       </header>
-      <label className="relative mx-4 block">
+      <div className="signal-search-row">
+      <label className="relative block min-w-0 flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
         <input
           aria-label="Search conversations"
-          className="w-full rounded-xl border border-transparent bg-slate-100 py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-blue-300 focus:bg-white"
+          className="signal-search-input"
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search conversations"
+          placeholder="Search"
           type="search"
           value={query}
         />
       </label>
-      <div className="mt-3 min-h-0 flex-1 overflow-y-auto px-2 pb-4">
+      <IconButton label="Filter conversations" onClick={() => undefined}>
+        <ListFilter size={20} />
+      </IconButton>
+      </div>
+      <div className="signal-conversation-list">
         {isLoading ? (
-          <div className="px-3 py-8 text-center text-sm text-slate-500">Loading conversations…</div>
+          <div className="px-3 py-8 text-center text-sm text-slate-400">Loading conversations…</div>
         ) : visibleConversations.length ? (
           visibleConversations.map((conversation) => (
             <button
               aria-current={selectedConversationId === conversation.id ? "page" : undefined}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
+              className={`signal-conversation-row ${
                 selectedConversationId === conversation.id
-                  ? "bg-blue-50"
-                  : "hover:bg-slate-50"
+                  ? "signal-conversation-row--selected"
+                  : ""
               }`}
               key={conversation.id}
               onClick={() => onSelect(conversation.id)}
@@ -111,26 +107,26 @@ export function ConversationSidebar({
                   size={46}
                 />
                 {conversation.kind === "group" && (
-                  <span className="absolute -bottom-1 -right-1 grid size-5 place-items-center rounded-full border-2 border-white bg-slate-700 text-white">
+                  <span className="signal-group-badge">
                     <UsersRound size={11} />
                   </span>
                 )}
                 {conversation.peer_user_id && onlineUserIds.has(conversation.peer_user_id) && (
                   <span
                     aria-label="Online"
-                    className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-white bg-emerald-500"
+                    className="signal-online-badge"
                   />
                 )}
               </div>
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline gap-2">
-                  <span className="truncate text-sm font-semibold text-slate-800">{conversation.title}</span>
-                  <span className="ml-auto shrink-0 text-[11px] text-slate-400">
+                  <span className="truncate text-[16px] font-semibold text-[var(--signal-text)]">{conversation.title}</span>
+                  <span className="ml-auto shrink-0 text-[13px] text-[var(--signal-muted)]">
                     {formatConversationTime(conversation.last_message_at)}
                   </span>
                 </span>
                 <span className="mt-1 flex items-center gap-2">
-                  <span className="truncate text-sm text-slate-500">
+                  <span className="truncate text-[15px] text-[var(--signal-muted)]">
                     {conversation.last_message?.body ?? "No messages yet"}
                   </span>
                   {conversation.unread_count > 0 && (
@@ -144,7 +140,7 @@ export function ConversationSidebar({
           ))
         ) : (
           <div className="grid h-full place-items-center px-8 text-center">
-            <p className="text-sm leading-6 text-slate-500">
+            <p className="text-sm leading-6 text-[var(--signal-muted)]">
               {query ? "No matching conversations." : "No conversations yet."}
             </p>
           </div>

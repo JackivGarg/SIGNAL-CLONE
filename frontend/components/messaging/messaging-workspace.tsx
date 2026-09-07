@@ -4,6 +4,7 @@ import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { NavigationRail } from "@/components/layout/navigation-rail";
 import { ConversationSidebar } from "@/components/messaging/conversation-sidebar";
 import { MessagePanel } from "@/components/messaging/message-panel";
 import { GroupDetailsDialog } from "@/components/messaging/group-details-dialog";
@@ -36,6 +37,14 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [showConversationOnMobile, setShowConversationOnMobile] = useState(false);
+  const [showRail, setShowRail] = useState(true);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = window.setTimeout(() => setNotice(null), 3_500);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
 
   useEffect(() => {
     api
@@ -163,6 +172,15 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
 
   return (
     <AppShell
+      rail={
+        <NavigationRail
+          isVisible={showRail}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onPlaceholder={(feature) => setNotice(`${feature} are an interface placeholder in this assignment demo.`)}
+          onToggle={() => setShowRail((visible) => !visible)}
+        />
+      }
+      showRail={showRail}
       showConversationOnMobile={showConversationOnMobile}
       sidebar={
         <ConversationSidebar
@@ -172,7 +190,6 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
           onOpenSettings={() => setIsSettingsOpen(true)}
           onSelect={selectConversation}
           selectedConversationId={selectedConversationId}
-          user={user}
           isRealtimeConnected={isConnected}
           onlineUserIds={onlineUserIds}
         />
@@ -192,6 +209,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
           onMessagesRead={clearSelectedUnreadCount}
           onDetails={() => selectedConversation.kind === "group" && setIsGroupDetailsOpen(true)}
           onBack={() => setShowConversationOnMobile(false)}
+          onPlaceholder={(feature) => setNotice(`${feature} are not included in the assignment's functional scope.`)}
           onTypingChange={(isTyping) =>
             sendEvent({
               type: isTyping ? "typing.started" : "typing.stopped",
@@ -228,6 +246,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
       {isSettingsOpen && (
         <SettingsDialog onClose={() => setIsSettingsOpen(false)} onLogout={onLogout} user={user} />
       )}
+      {notice && <div className="signal-toast" role="status">{notice}</div>}
     </AppShell>
   );
 }
