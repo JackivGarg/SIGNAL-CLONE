@@ -1,10 +1,27 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class DirectConversationPayload(BaseModel):
     user_id: str
+
+
+class GroupCreatePayload(BaseModel):
+    title: str = Field(min_length=1, max_length=100)
+    member_ids: list[str] = Field(min_length=1, max_length=50)
+
+
+class AddGroupMemberPayload(BaseModel):
+    user_id: str
+
+
+class GroupMemberResponse(BaseModel):
+    user_id: str
+    display_name: str
+    avatar_key: str
+    role: str
+    joined_at: datetime
 
 
 class LastMessagePreview(BaseModel):
