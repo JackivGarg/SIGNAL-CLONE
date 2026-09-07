@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.api.auth import router as auth_router
 from app.api.health import router as health_router
 
 
@@ -9,6 +10,7 @@ def create_app() -> FastAPI:
         version="0.1.0",
         description="REST and WebSocket service for the Signal Clone assignment.",
     )
+    app.include_router(auth_router, prefix="/api")
     app.include_router(health_router, prefix="/api")
     return app
 
