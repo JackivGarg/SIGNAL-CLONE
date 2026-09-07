@@ -39,5 +39,9 @@ class ConnectionManager:
             except RuntimeError:
                 self.disconnect(user_id, websocket)
 
+    async def send_to_users(self, user_ids: list[str], event: dict[str, object]) -> None:
+        for user_id in user_ids:
+            await self.send_to_user(user_id, event)
+
 
 connection_manager = ConnectionManager()
