@@ -1,0 +1,12 @@
+.git/
+.next/
+out/
+node_modules/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+backend/data/
+tmp/
+
