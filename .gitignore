@@ -18,7 +18,9 @@ __pycache__/
 .env
 .env.*
 !.env.example
+!.env.production.example
 backend/data/
+backend/tests/*.db
 *.db
 *.sqlite*
 
