@@ -7,9 +7,13 @@ import { IconButton } from "@/components/ui/icon-button";
 type AppShellProps = {
   children: ReactNode;
   sidebar: ReactNode;
+  user: {
+    avatarKey: string;
+    displayName: string;
+  };
 };
 
-export function AppShell({ children, sidebar }: AppShellProps) {
+export function AppShell({ children, sidebar, user }: AppShellProps) {
   return (
     <div className="signal-shell">
       <aside aria-label="Primary navigation" className="signal-rail">
@@ -20,7 +24,7 @@ export function AppShell({ children, sidebar }: AppShellProps) {
         <IconButton label="Settings">
           <Settings size={20} />
         </IconButton>
-        <Avatar avatarKey="ocean" name="Jack" size={36} />
+        <Avatar avatarKey={user.avatarKey} name={user.displayName} size={36} />
       </aside>
       <aside aria-label="Conversations" className="signal-sidebar">
         {sidebar}
