@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.auth import router as auth_router
 from app.api.contacts import router as contacts_router
@@ -28,6 +29,12 @@ def create_app() -> FastAPI:
     app.include_router(conversations_router, prefix="/api")
     app.include_router(health_router, prefix="/api")
     app.include_router(websocket_router, prefix="/ws")
+    if settings.static_directory_path:
+        app.mount(
+            "/",
+            StaticFiles(directory=settings.static_directory_path, html=True),
+            name="frontend",
+        )
     return app
 
 

@@ -9,20 +9,14 @@ from app.core.config import get_settings
 
 def _create_engine() -> Engine:
     settings = get_settings()
-
-    if settings.uses_turso:
-        # sqlalchemy-libsql is installed in the production Docker image only.
-        database_url = f"sqlite+{settings.turso_database_url}?secure=true"
-        connect_args: dict[str, object] = {"auth_token": settings.turso_auth_token}
-    else:
-        database_url = settings.database_url
-        connect_args = {"check_same_thread": False}
-        if database_url.startswith("sqlite:///"):
-            Path(database_url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
+    database_url = settings.database_url
+    connect_args: dict[str, object] = {"check_same_thread": False}
+    if database_url.startswith("sqlite:///"):
+        Path(database_url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
 
     engine = create_engine(database_url, connect_args=connect_args, pool_pre_ping=True)
 
-    if not settings.uses_turso and database_url.startswith("sqlite"):
+    if database_url.startswith("sqlite"):
 
         @event.listens_for(engine, "connect")
         def configure_sqlite_connection(dbapi_connection: object, _: object) -> None:

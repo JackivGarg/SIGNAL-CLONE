@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -15,8 +16,7 @@ class Settings(BaseSettings):
     session_cookie_name: str = "signal_session"
     session_duration_days: int = 30
     cors_origins: str = "http://localhost:3000"
-    turso_database_url: str | None = None
-    turso_auth_token: str | None = None
+    static_directory: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -25,12 +25,15 @@ class Settings(BaseSettings):
         return self.app_env.lower() == "production"
 
     @property
-    def uses_turso(self) -> bool:
-        return bool(self.turso_database_url and self.turso_auth_token)
-
-    @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def static_directory_path(self) -> Path | None:
+        if not self.static_directory:
+            return None
+        path = Path(self.static_directory)
+        return path if path.is_dir() else None
 
 
 @lru_cache
