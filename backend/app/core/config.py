@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     demo_mode: bool = True
     demo_otp: str = "123456"
     session_cookie_secure: bool = False
+    session_cookie_name: str = "signal_session"
+    session_duration_days: int = 30
     turso_database_url: str | None = None
     turso_auth_token: str | None = None
 
