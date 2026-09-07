@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         return self.app_env.lower() == "production"
 
+    @property
+    def uses_turso(self) -> bool:
+        return bool(self.turso_database_url and self.turso_auth_token)
+
 
 @lru_cache
 def get_settings() -> Settings:
