@@ -18,6 +18,7 @@ from app.schemas.conversation import (
 )
 from app.services.conversations import get_member_conversation, serialize_conversation
 from app.services.messages import mark_messages_read, serialize_message
+from app.websocket.manager import connection_manager
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
@@ -103,7 +104,7 @@ def list_messages(
     response_model=MessageResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def send_message(
+async def send_message(
     conversation_id: str,
     payload: SendMessagePayload,
     response: Response,
@@ -156,6 +157,16 @@ def send_message(
     conversation.last_message_at = message.sent_at
     db.commit()
     db.refresh(message)
+
+    for recipient_id in recipients:
+        await connection_manager.send_to_user(
+            recipient_id,
+            {
+                "type": "message.created",
+                "message": serialize_message(db, message, recipient_id).model_dump(mode="json"),
+            },
+        )
+
     return serialize_message(db, message, current_user.id)
 
 
