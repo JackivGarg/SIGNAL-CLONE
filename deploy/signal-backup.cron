@@ -1,0 +1,1 @@
+17 3 * * * cd /opt/signal-clone && /usr/bin/docker compose -f compose.production.yml exec -T app python -m app.backup >> /var/log/signal-backup.log 2>&1

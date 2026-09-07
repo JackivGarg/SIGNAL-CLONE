@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     session_duration_days: int = 30
     cors_origins: str = "http://localhost:3000"
     static_directory: str | None = None
+    backup_directory: str = "./backups"
+    backup_retention_days: int = 30
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

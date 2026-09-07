@@ -14,6 +14,7 @@ os.environ.update(
         "DEMO_MODE": "true",
         "DEMO_OTP": "123456",
         "SESSION_COOKIE_SECURE": "false",
+        "BACKUP_DIRECTORY": str(Path(__file__).parent / "backups"),
     }
 )
 

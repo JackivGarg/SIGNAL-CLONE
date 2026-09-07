@@ -21,6 +21,8 @@ __pycache__/
 !.env.production.example
 backend/data/
 backend/tests/*.db
+backend/tests/backups/
+backups/
 *.db
 *.sqlite*
 
