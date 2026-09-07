@@ -1,0 +1,27 @@
+# Dependencies and build output
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+
+# Environment and runtime data
+.env
+.env.*
+!.env.example
+backend/data/
+*.db
+*.sqlite*
+
+# Local tooling and temporary artifacts
+tmp/
+.DS_Store
+Thumbs.db
+
