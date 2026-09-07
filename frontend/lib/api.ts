@@ -32,6 +32,20 @@ export type Contact = {
   last_seen_at: string | null;
 };
 
+export type Message = {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  sender_name: string;
+  body: string;
+  client_message_id: string;
+  reply_to_id: string | null;
+  sent_at: string;
+  delivered_at: string | null;
+  read_at: string | null;
+  pending?: boolean;
+};
+
 type OtpChallenge = {
   challenge_id: string;
   expires_at: string;
@@ -112,4 +126,16 @@ export const api = {
       method: "POST",
       body: { user_id: userId },
     }),
+  getMessages: (conversationId: string) =>
+    request<Message[]>(`/conversations/${encodeURIComponent(conversationId)}/messages`),
+  sendMessage: (conversationId: string, body: string, clientMessageId: string) =>
+    request<Message>(`/conversations/${encodeURIComponent(conversationId)}/messages`, {
+      method: "POST",
+      body: { body, client_message_id: clientMessageId },
+    }),
+  markConversationRead: (conversationId: string) =>
+    request<{ marked_read: number }>(
+      `/conversations/${encodeURIComponent(conversationId)}/read`,
+      { method: "POST" },
+    ),
 };

@@ -1,9 +1,10 @@
 "use client";
 
-import { Edit3, Search, UsersRound } from "lucide-react";
+import { Edit3, MoreVertical, Search, UsersRound } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { ConversationPreview } from "@/lib/api";
+import type { User } from "@/lib/api";
 import { Avatar } from "@/components/ui/avatar";
 import { IconButton } from "@/components/ui/icon-button";
 
@@ -13,6 +14,7 @@ type ConversationSidebarProps = {
   onNewMessage: () => void;
   onSelect: (conversationId: string) => void;
   selectedConversationId: string | null;
+  user: User;
 };
 
 function formatConversationTime(value: string | null) {
@@ -31,6 +33,7 @@ export function ConversationSidebar({
   onNewMessage,
   onSelect,
   selectedConversationId,
+  user,
 }: ConversationSidebarProps) {
   const [query, setQuery] = useState("");
   const visibleConversations = useMemo(() => {
@@ -46,10 +49,18 @@ export function ConversationSidebar({
   return (
     <div className="flex h-full flex-col">
       <header className="flex items-center justify-between px-5 pb-3 pt-5">
-        <h1 className="text-xl font-semibold tracking-tight">Signal</h1>
-        <IconButton label="New message" onClick={onNewMessage}>
-          <Edit3 size={19} />
-        </IconButton>
+        <div className="flex items-center gap-3">
+          <Avatar avatarKey={user.avatar_key} name={user.display_name} size={36} />
+          <h1 className="text-xl font-semibold tracking-tight">Signal</h1>
+        </div>
+        <div className="flex items-center gap-1">
+          <IconButton label="New message" onClick={onNewMessage}>
+            <Edit3 size={19} />
+          </IconButton>
+          <IconButton label="More options">
+            <MoreVertical size={19} />
+          </IconButton>
+        </div>
       </header>
       <label className="relative mx-4 block">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />

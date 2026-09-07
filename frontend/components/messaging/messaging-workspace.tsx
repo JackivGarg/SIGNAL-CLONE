@@ -1,12 +1,13 @@
 "use client";
 
-import { LockKeyhole, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { ConversationSidebar } from "@/components/messaging/conversation-sidebar";
+import { MessagePanel } from "@/components/messaging/message-panel";
 import { NewConversationDialog } from "@/components/messaging/new-conversation-dialog";
-import { api, type ConversationPreview, type User } from "@/lib/api";
+import { api, type ConversationPreview, type Message, type User } from "@/lib/api";
 
 type MessagingWorkspaceProps = {
   user: User;
@@ -41,6 +42,37 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
     setIsNewConversationOpen(false);
   }
 
+  function updateConversationFromMessage(message: Message) {
+    setConversations((currentConversations) =>
+      currentConversations
+        .map((conversation) =>
+          conversation.id === message.conversation_id
+            ? {
+                ...conversation,
+                last_message: {
+                  body: message.body,
+                  sender_id: message.sender_id,
+                  sent_at: message.sent_at,
+                },
+                last_message_at: message.sent_at,
+              }
+            : conversation,
+        )
+        .sort((first, second) =>
+          (second.last_message_at ?? "").localeCompare(first.last_message_at ?? ""),
+        ),
+    );
+  }
+
+  const clearSelectedUnreadCount = useCallback(() => {
+    if (!selectedConversationId) return;
+    setConversations((currentConversations) =>
+      currentConversations.map((conversation) =>
+        conversation.id === selectedConversationId ? { ...conversation, unread_count: 0 } : conversation,
+      ),
+    );
+  }, [selectedConversationId]);
+
   return (
     <AppShell
       sidebar={
@@ -50,26 +82,22 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
           onNewMessage={() => setIsNewConversationOpen(true)}
           onSelect={setSelectedConversationId}
           selectedConversationId={selectedConversationId}
+          user={user}
         />
       }
-      user={{ avatarKey: user.avatar_key, displayName: user.display_name }}
     >
       {isLoading ? (
         <section className="grid place-items-center p-8 text-slate-500">
           <RefreshCw className="animate-spin" size={22} />
         </section>
       ) : selectedConversation ? (
-        <section className="grid place-items-center p-8 text-center">
-          <div className="max-w-sm">
-            <div className="mx-auto mb-5 grid size-16 place-items-center rounded-full bg-blue-100 text-blue-600">
-              <LockKeyhole size={28} />
-            </div>
-            <h2 className="text-2xl font-semibold tracking-tight">{selectedConversation.title}</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-500">
-              Conversation history and the message composer are loading in the next workspace step.
-            </p>
-          </div>
-        </section>
+        <MessagePanel
+          conversation={selectedConversation}
+          currentUser={user}
+          key={selectedConversation.id}
+          onMessageSent={updateConversationFromMessage}
+          onMessagesRead={clearSelectedUnreadCount}
+        />
       ) : (
         <section className="grid place-items-center p-8 text-center">
           <div className="max-w-sm">

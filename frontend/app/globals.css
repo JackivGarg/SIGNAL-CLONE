@@ -43,22 +43,8 @@ button {
 
 .signal-shell {
   display: grid;
-  grid-template-columns: 72px minmax(320px, 390px) minmax(0, 1fr);
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
   min-height: 100vh;
-}
-
-.signal-rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 10px;
-  border-right: 1px solid var(--signal-border);
-  background: #fafafa;
-}
-
-.signal-rail__spacer {
-  flex: 1;
 }
 
 .signal-sidebar {
@@ -120,10 +106,6 @@ button {
 @media (max-width: 760px) {
   .signal-shell {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .signal-rail {
-    display: none;
   }
 
   .signal-sidebar {
