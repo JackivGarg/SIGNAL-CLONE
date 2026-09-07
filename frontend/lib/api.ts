@@ -1,6 +1,7 @@
 export type User = {
   id: string;
   identifier: string;
+  phone_number: string | null;
   display_name: string;
   avatar_key: string;
   bio: string | null;
@@ -28,6 +29,7 @@ export type ConversationPreview = {
 export type Contact = {
   id: string;
   identifier: string;
+  phone_number: string | null;
   display_name: string;
   avatar_key: string;
   nickname: string | null;
@@ -137,8 +139,11 @@ export const api = {
   getDemoUsers: () => request<User[]>("/auth/demo-users"),
   loginAsDemoUser: (identifier: string) =>
     request<User>(`/auth/demo-login/${encodeURIComponent(identifier)}`, { method: "POST" }),
-  requestOtp: (identifier: string) =>
-    request<OtpChallenge>("/auth/request-otp", { method: "POST", body: { identifier } }),
+  requestOtp: (phoneNumber: string, username: string) =>
+    request<OtpChallenge>("/auth/request-otp", {
+      method: "POST",
+      body: { phone_number: phoneNumber, username },
+    }),
   verifyOtp: (challengeId: string, code: string) =>
     request<User>("/auth/verify-otp", {
       method: "POST",

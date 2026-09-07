@@ -13,12 +13,13 @@ OTP_LIFETIME_MINUTES = 10
 MAX_OTP_ATTEMPTS = 5
 
 
-def create_otp_challenge(db: DbSession, identifier: str) -> OtpChallenge:
+def create_otp_challenge(db: DbSession, phone_number: str, username: str) -> OtpChallenge:
     settings = get_settings()
     challenge_id = new_id()
     challenge = OtpChallenge(
         id=challenge_id,
-        identifier=identifier,
+        identifier=phone_number,
+        username=username,
         code_hash=hash_otp_code(challenge_id, settings.demo_otp),
         expires_at=datetime.now(UTC) + timedelta(minutes=OTP_LIFETIME_MINUTES),
     )

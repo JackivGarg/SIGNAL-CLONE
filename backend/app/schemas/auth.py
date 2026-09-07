@@ -3,25 +3,39 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator
 
-IDENTIFIER_PATTERN = re.compile(r"^(?:\+?[0-9]{7,15}|[a-z0-9._-]{3,80})$", re.IGNORECASE)
+USERNAME_PATTERN = re.compile(r"^[a-z0-9._-]{3,80}$", re.IGNORECASE)
+PHONE_PATTERN = re.compile(r"^\+?[0-9]{7,15}$")
 
 
-def normalize_identifier(value: str) -> str:
+def normalize_username(value: str) -> str:
     normalized = value.strip().lower()
     if normalized.startswith("@"):
         normalized = normalized[1:]
-    if not IDENTIFIER_PATTERN.fullmatch(normalized):
-        raise ValueError("Use a username or a valid phone number.")
+    if not USERNAME_PATTERN.fullmatch(normalized):
+        raise ValueError("Use 3-80 letters, numbers, dots, underscores, or hyphens.")
+    return normalized
+
+
+def normalize_phone_number(value: str) -> str:
+    normalized = value.strip().replace(" ", "").replace("-", "")
+    if not PHONE_PATTERN.fullmatch(normalized):
+        raise ValueError("Use a valid phone number with 7-15 digits.")
     return normalized
 
 
 class RequestOtpPayload(BaseModel):
-    identifier: str = Field(min_length=3, max_length=80)
+    phone_number: str = Field(min_length=7, max_length=24)
+    username: str = Field(min_length=3, max_length=81)
 
-    @field_validator("identifier")
+    @field_validator("phone_number")
     @classmethod
-    def validate_identifier(cls, value: str) -> str:
-        return normalize_identifier(value)
+    def validate_phone_number(cls, value: str) -> str:
+        return normalize_phone_number(value)
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, value: str) -> str:
+        return normalize_username(value)
 
 
 class OtpChallengeResponse(BaseModel):

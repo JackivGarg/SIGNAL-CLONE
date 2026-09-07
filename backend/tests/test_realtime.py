@@ -5,8 +5,13 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 
-def register_user(client: TestClient, identifier: str, display_name: str) -> dict[str, object]:
-    challenge = client.post("/api/auth/request-otp", json={"identifier": identifier}).json()
+def register_user(
+    client: TestClient, username: str, phone_number: str, display_name: str
+) -> dict[str, object]:
+    challenge = client.post(
+        "/api/auth/request-otp",
+        json={"phone_number": phone_number, "username": username},
+    ).json()
     response = client.post(
         "/api/auth/verify-otp",
         json={"challenge_id": challenge["challenge_id"], "code": "123456"},
@@ -24,8 +29,10 @@ def test_first_direct_message_reveals_conversation_to_online_recipient(
     client: TestClient,
 ) -> None:
     recipient = TestClient(app)
-    sender_user = register_user(client, "event-sender", "Event Sender")
-    recipient_user = register_user(recipient, "event-recipient", "Event Recipient")
+    sender_user = register_user(client, "event-sender", "+15550000101", "Event Sender")
+    recipient_user = register_user(
+        recipient, "event-recipient", "+15550000102", "Event Recipient"
+    )
 
     with recipient.websocket_connect("/ws") as socket:
         assert socket.receive_json()["type"] == "connection.ready"
@@ -52,8 +59,10 @@ def test_first_direct_message_reveals_conversation_to_online_recipient(
 
 def test_new_group_is_pushed_to_online_member(client: TestClient) -> None:
     recipient = TestClient(app)
-    register_user(client, "group-sender", "Group Sender")
-    recipient_user = register_user(recipient, "group-recipient", "Group Recipient")
+    register_user(client, "group-sender", "+15550000103", "Group Sender")
+    recipient_user = register_user(
+        recipient, "group-recipient", "+15550000104", "Group Recipient"
+    )
 
     with recipient.websocket_connect("/ws") as socket:
         assert socket.receive_json()["type"] == "connection.ready"

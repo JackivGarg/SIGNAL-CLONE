@@ -23,7 +23,7 @@ export function NewConversationDialog({ onClose, onCreated }: NewConversationDia
   useEffect(() => { api.getContacts().then(setContacts).catch(() => setError("Could not load contacts.")); }, []);
   const visibleContacts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return normalizedQuery ? contacts.filter((contact) => `${contact.display_name} ${contact.identifier}`.toLowerCase().includes(normalizedQuery)) : contacts;
+    return normalizedQuery ? contacts.filter((contact) => `${contact.display_name} ${contact.identifier} ${contact.phone_number ?? ""}`.toLowerCase().includes(normalizedQuery)) : contacts;
   }, [contacts, query]);
   const selectedContacts = contacts.filter((contact) => selectedMemberIds.includes(contact.id));
 

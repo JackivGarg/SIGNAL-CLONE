@@ -10,6 +10,7 @@ class ContactCreatePayload(BaseModel):
 class ContactResponse(BaseModel):
     id: str
     identifier: str
+    phone_number: str | None
     display_name: str
     avatar_key: str
     nickname: str | None

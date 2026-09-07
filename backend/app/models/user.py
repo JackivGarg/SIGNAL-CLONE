@@ -10,6 +10,7 @@ class User(IdMixin, TimestampMixin, Base):
     __tablename__ = "users"
 
     identifier: Mapped[str] = mapped_column(String(80), unique=True, index=True, nullable=False)
+    phone_number: Mapped[str | None] = mapped_column(String(16), unique=True, index=True)
     display_name: Mapped[str] = mapped_column(String(80), nullable=False)
     avatar_key: Mapped[str] = mapped_column(String(40), default="sky", nullable=False)
     bio: Mapped[str | None] = mapped_column(String(140))

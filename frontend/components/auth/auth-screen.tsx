@@ -11,7 +11,8 @@ type AuthScreenProps = { initialDemoUsers?: User[]; onAuthenticated: (user: User
 export function AuthScreen({ initialDemoUsers = [], onAuthenticated }: AuthScreenProps) {
   const [mode, setMode] = useState<"demo" | "signup">("demo");
   const [demoUsers, setDemoUsers] = useState<User[]>(initialDemoUsers);
-  const [identifier, setIdentifier] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [username, setUsername] = useState("");
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [demoCode, setDemoCode] = useState<string | null>(null);
   const [code, setCode] = useState("");
@@ -33,7 +34,7 @@ export function AuthScreen({ initialDemoUsers = [], onAuthenticated }: AuthScree
   async function submitIdentifier(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy("otp"); setError(null);
     try {
-      const challenge = await api.requestOtp(identifier);
+      const challenge = await api.requestOtp(phoneNumber, username);
       setChallengeId(challenge.challenge_id); setDemoCode(challenge.demo_code); setCode(challenge.demo_code ?? "");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not start verification."); }
     finally { setBusy(null); }
@@ -73,13 +74,14 @@ export function AuthScreen({ initialDemoUsers = [], onAuthenticated }: AuthScree
           <h2>Choose a demo person</h2><p>Each account has contacts, direct chats, and a shared group ready for review.</p>
           <div className="signal-demo-grid">{demoUsers.map((user) => <button disabled={busy !== null} key={user.id} onClick={() => loginDemo(user)} type="button"><Avatar avatarKey={user.avatar_key} name={user.display_name} size={46} /><span><b>{user.display_name}</b><small>@{user.identifier}</small></span><ArrowRight size={18} /></button>)}</div>
         </div> : challengeId ? <form className="signal-auth-body" onSubmit={submitCode}>
-          <span className="signal-auth-form-icon"><Smartphone size={23} /></span><h2>Confirm your code</h2><p>Enter the six-digit code for <strong>{identifier}</strong>.</p>
+          <span className="signal-auth-form-icon"><Smartphone size={23} /></span><h2>Confirm your code</h2><p>Enter the six-digit code for <strong>{phoneNumber}</strong>.</p>
           {demoCode && <div className="signal-auth-code-note">Demo code: <b>{demoCode}</b></div>}
           <input autoComplete="one-time-code" autoFocus className="signal-auth-code-input" inputMode="numeric" maxLength={6} onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))} placeholder="123456" value={code} />
           <button className="signal-auth-primary" disabled={busy !== null || code.length !== 6} type="submit">{busy === "verify" ? "Verifying…" : "Verify and continue"}<ArrowRight size={18} /></button>
         </form> : <form className="signal-auth-body" onSubmit={submitIdentifier}>
-          <span className="signal-auth-form-icon"><Smartphone size={23} /></span><h2>Create your account</h2><p>Use a username or phone number. The verification code is shown securely in this demo.</p>
-          <label htmlFor="identifier">Username or phone number</label><input autoFocus id="identifier" minLength={3} onChange={(event) => setIdentifier(event.target.value)} placeholder="your-name or +919876543210" required value={identifier} />
+          <span className="signal-auth-form-icon"><Smartphone size={23} /></span><h2>Create your account</h2><p>Add both your phone number and a unique username. The verification code is shown securely in this demo.</p>
+          <label htmlFor="phone-number">Phone number</label><input autoFocus id="phone-number" inputMode="tel" minLength={7} onChange={(event) => setPhoneNumber(event.target.value)} placeholder="+919876543210" required value={phoneNumber} />
+          <label htmlFor="username">Username</label><input autoCapitalize="none" autoComplete="username" id="username" minLength={3} onChange={(event) => setUsername(event.target.value)} placeholder="comate" required spellCheck={false} value={username} />
           <button className="signal-auth-primary" disabled={busy !== null} type="submit">{busy === "otp" ? "Preparing verification…" : "Continue"}<ArrowRight size={18} /></button>
         </form>}
         {error && <p className="signal-auth-error">{error}</p>}

@@ -61,7 +61,15 @@ def login_as_demo_user(identifier: str, response: Response, db: DatabaseSession)
 
 @router.post("/request-otp", response_model=OtpChallengeResponse)
 def request_otp(payload: RequestOtpPayload, db: DatabaseSession) -> OtpChallengeResponse:
-    challenge = create_otp_challenge(db, payload.identifier)
+    if db.scalar(select(User.id).where(User.identifier == payload.username)):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Username is already taken."
+        )
+    if db.scalar(select(User.id).where(User.phone_number == payload.phone_number)):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Phone number is already registered."
+        )
+    challenge = create_otp_challenge(db, payload.phone_number, payload.username)
     settings = get_settings()
     return OtpChallengeResponse(
         challenge_id=challenge.id,
@@ -73,9 +81,21 @@ def request_otp(payload: RequestOtpPayload, db: DatabaseSession) -> OtpChallenge
 @router.post("/verify-otp", response_model=UserResponse)
 def verify_otp(payload: VerifyOtpPayload, response: Response, db: DatabaseSession) -> User:
     challenge = consume_otp_challenge(db, payload.challenge_id, payload.code)
-    user = db.scalar(select(User).where(User.identifier == challenge.identifier))
+    user = db.scalar(select(User).where(User.phone_number == challenge.identifier))
     if user is None:
-        user = User(identifier=challenge.identifier, display_name=challenge.identifier)
+        if challenge.username is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Registration challenge is invalid."
+            )
+        if db.scalar(select(User.id).where(User.identifier == challenge.username)):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail="Username is already taken."
+            )
+        user = User(
+            identifier=challenge.username,
+            phone_number=challenge.identifier,
+            display_name=challenge.username,
+        )
         db.add(user)
         db.flush()
 

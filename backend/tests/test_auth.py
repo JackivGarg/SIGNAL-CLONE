@@ -18,7 +18,8 @@ def test_demo_login_and_logout(client: TestClient) -> None:
 
 def test_mock_otp_registration_and_profile_setup(client: TestClient) -> None:
     challenge_response = client.post(
-        "/api/auth/request-otp", json={"identifier": "new-reviewer"}
+        "/api/auth/request-otp",
+        json={"phone_number": "+15550000001", "username": "new-reviewer"},
     )
     assert challenge_response.status_code == 200
     challenge = challenge_response.json()
@@ -47,7 +48,8 @@ def test_private_routes_require_authentication(client: TestClient) -> None:
 
 def test_registered_phone_user_can_be_found_and_added_as_a_contact(client: TestClient) -> None:
     target_challenge = client.post(
-        "/api/auth/request-otp", json={"identifier": "+15551234567"}
+        "/api/auth/request-otp",
+        json={"phone_number": "+15551234567", "username": "comate"},
     ).json()
     assert client.post(
         "/api/auth/verify-otp",
@@ -55,12 +57,13 @@ def test_registered_phone_user_can_be_found_and_added_as_a_contact(client: TestC
     ).status_code == 200
     assert client.patch(
         "/api/auth/profile",
-        json={"display_name": "Phone Contact", "avatar_key": "sky", "bio": ""},
+        json={"display_name": "Comate Friend", "avatar_key": "sky", "bio": ""},
     ).status_code == 200
     assert client.post("/api/auth/logout").status_code == 204
 
     requester_challenge = client.post(
-        "/api/auth/request-otp", json={"identifier": "+15557654321"}
+        "/api/auth/request-otp",
+        json={"phone_number": "+15557654321", "username": "phone-requester"},
     ).json()
     assert client.post(
         "/api/auth/verify-otp",
@@ -73,10 +76,30 @@ def test_registered_phone_user_can_be_found_and_added_as_a_contact(client: TestC
 
     add_response = client.post("/api/contacts", json={"identifier": " +15551234567 "})
     assert add_response.status_code == 201
-    assert add_response.json()["display_name"] == "Phone Contact"
+    assert add_response.json()["identifier"] == "comate"
+    username_response = client.post("/api/contacts", json={"identifier": "COMATE"})
+    assert username_response.status_code == 201
+    assert username_response.json()["phone_number"] == "+15551234567"
+    display_name_response = client.post(
+        "/api/contacts", json={"identifier": "Comate Friend"}
+    )
+    assert display_name_response.status_code == 404
     contacts_response = client.get("/api/contacts?query=1234567")
     assert contacts_response.status_code == 200
-    assert [contact["identifier"] for contact in contacts_response.json()] == ["+15551234567"]
+    assert [contact["identifier"] for contact in contacts_response.json()] == ["comate"]
+
+
+def test_registration_requires_unique_phone_and_username(client: TestClient) -> None:
+    missing_username = client.post(
+        "/api/auth/request-otp", json={"phone_number": "+15550000002"}
+    )
+    assert missing_username.status_code == 422
+
+    duplicate_username = client.post(
+        "/api/auth/request-otp",
+        json={"phone_number": "+15550000002", "username": "jack"},
+    )
+    assert duplicate_username.status_code == 409
 
 
 def test_username_lookup_accepts_displayed_at_prefix(client: TestClient) -> None:

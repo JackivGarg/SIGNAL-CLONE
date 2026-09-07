@@ -4,7 +4,7 @@ from sqlalchemy import or_, select
 from app.api.deps import CurrentUser, DatabaseSession
 from app.models.contact import Contact
 from app.models.user import User
-from app.schemas.auth import normalize_identifier
+from app.schemas.auth import normalize_phone_number, normalize_username
 from app.schemas.contact import ContactCreatePayload, ContactResponse
 
 router = APIRouter(prefix="/contacts", tags=["contacts"])
@@ -23,13 +23,18 @@ def list_contacts(
     if query.strip():
         search = f"%{query.strip()}%"
         statement = statement.where(
-            or_(User.display_name.ilike(search), User.identifier.ilike(search))
+            or_(
+                User.display_name.ilike(search),
+                User.identifier.ilike(search),
+                User.phone_number.ilike(search),
+            )
         )
 
     return [
         ContactResponse(
             id=user.id,
             identifier=user.identifier,
+            phone_number=user.phone_number,
             display_name=user.display_name,
             avatar_key=user.avatar_key,
             nickname=contact.nickname,
@@ -43,10 +48,29 @@ def list_contacts(
 def add_contact(
     payload: ContactCreatePayload, current_user: CurrentUser, db: DatabaseSession
 ) -> ContactResponse:
-    identifier = normalize_identifier(payload.identifier)
-    target = db.scalar(select(User).where(User.identifier == identifier))
+    lookup = payload.identifier.strip()
+    try:
+        phone_number = normalize_phone_number(lookup)
+    except ValueError:
+        phone_number = None
+    try:
+        username = normalize_username(lookup)
+    except ValueError:
+        username = None
+
+    target = db.scalar(
+        select(User).where(
+            or_(
+                User.identifier == username if username else False,
+                User.phone_number == phone_number if phone_number else False,
+            )
+        )
+    )
     if target is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User was not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No user was found with that username or phone number.",
+        )
     if target.id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="You cannot add yourself."
@@ -62,6 +86,7 @@ def add_contact(
     return ContactResponse(
         id=target.id,
         identifier=target.identifier,
+        phone_number=target.phone_number,
         display_name=target.display_name,
         avatar_key=target.avatar_key,
         nickname=contact.nickname,
