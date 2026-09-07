@@ -46,6 +46,22 @@ export type Message = {
   pending?: boolean;
 };
 
+export type ReceiptUpdate = {
+  type: "receipt.updated";
+  message_id: string;
+  recipient_id: string;
+  status: "delivered" | "read";
+  occurred_at: string | null;
+};
+
+export type RealtimeEvent =
+  | { type: "connection.ready"; user_id: string; online_contact_ids: string[] }
+  | { type: "message.created"; message: Message }
+  | ReceiptUpdate
+  | { type: "typing.started" | "typing.stopped"; conversation_id: string; user_id: string }
+  | { type: "presence.updated"; user_id: string; is_online: boolean }
+  | { type: "pong" };
+
 type OtpChallenge = {
   challenge_id: string;
   expires_at: string;
@@ -73,6 +89,13 @@ function getApiBaseUrl() {
   }
 
   return "/api";
+}
+
+export function getWebSocketUrl() {
+  if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
+  if (typeof window === "undefined") return "";
+  if (window.location.hostname === "localhost") return "ws://localhost:8000/ws";
+  return `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`;
 }
 
 async function request<T>(path: string, options: ApiOptions = {}): Promise<T> {

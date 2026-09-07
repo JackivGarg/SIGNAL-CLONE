@@ -10,8 +10,12 @@ import { api } from "@/lib/api";
 type MessagePanelProps = {
   conversation: ConversationPreview;
   currentUser: User;
+  incomingMessage: Message | null;
   onMessageSent: (message: Message) => void;
   onMessagesRead: () => void;
+  onTypingChange: (isTyping: boolean) => void;
+  receiptUpdates: Record<string, "delivered" | "read">;
+  typing: boolean;
 };
 
 function formatMessageTime(value: string) {
@@ -21,8 +25,12 @@ function formatMessageTime(value: string) {
 export function MessagePanel({
   conversation,
   currentUser,
+  incomingMessage,
   onMessageSent,
   onMessagesRead,
+  onTypingChange,
+  receiptUpdates,
+  typing,
 }: MessagePanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
@@ -30,9 +38,21 @@ export function MessagePanel({
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<number | undefined>(undefined);
+  const isTypingRef = useRef(false);
+  const onTypingChangeRef = useRef(onTypingChange);
+
+  useEffect(() => {
+    onTypingChangeRef.current = onTypingChange;
+  }, [onTypingChange]);
 
   useEffect(() => {
     let isCurrent = true;
+    if (incomingMessage && incomingMessage.conversation_id !== conversation.id) {
+      return () => {
+        isCurrent = false;
+      };
+    }
     api
       .getMessages(conversation.id)
       .then((items) => {
@@ -45,7 +65,15 @@ export function MessagePanel({
     return () => {
       isCurrent = false;
     };
-  }, [conversation.id, onMessagesRead]);
+  }, [conversation.id, incomingMessage, onMessagesRead]);
+
+  useEffect(
+    () => () => {
+      if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
+      if (isTypingRef.current) onTypingChangeRef.current(false);
+    },
+    [],
+  );
 
   useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -55,6 +83,12 @@ export function MessagePanel({
     event.preventDefault();
     const body = draft.trim();
     if (!body || isSending) return;
+
+    if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      onTypingChange(false);
+    }
 
     const clientMessageId = crypto.randomUUID();
     const optimisticMessage: Message = {
@@ -90,6 +124,28 @@ export function MessagePanel({
     }
   }
 
+  function updateDraft(value: string) {
+    setDraft(value);
+    if (!value.trim()) {
+      if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
+      if (isTypingRef.current) {
+        isTypingRef.current = false;
+        onTypingChange(false);
+      }
+      return;
+    }
+
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      onTypingChange(true);
+    }
+    if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = window.setTimeout(() => {
+      isTypingRef.current = false;
+      onTypingChangeRef.current(false);
+    }, 1_200);
+  }
+
   return (
     <section className="grid min-h-0 grid-rows-[auto_1fr_auto]">
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3">
@@ -98,7 +154,11 @@ export function MessagePanel({
           <div className="min-w-0">
             <h2 className="truncate font-semibold">{conversation.title}</h2>
             <p className="truncate text-xs text-slate-500">
-              {conversation.kind === "group" ? "Group conversation" : "Private conversation"}
+              {typing
+                ? "Typing…"
+                : conversation.kind === "group"
+                  ? "Group conversation"
+                  : "Private conversation"}
             </p>
           </div>
         </div>
@@ -145,7 +205,9 @@ export function MessagePanel({
                       {isOwnMessage &&
                         (message.pending ? (
                           <span>Sending…</span>
-                        ) : message.read_at ? (
+                        ) : receiptUpdates[message.id] === "read" || message.read_at ? (
+                          <CheckCheck size={13} />
+                        ) : receiptUpdates[message.id] === "delivered" ? (
                           <CheckCheck size={13} />
                         ) : (
                           <Check size={13} />
@@ -168,7 +230,7 @@ export function MessagePanel({
             aria-label="Message"
             className="max-h-32 min-h-6 flex-1 resize-none bg-transparent py-1 text-sm outline-none placeholder:text-slate-400"
             maxLength={2000}
-            onChange={(event) => setDraft(event.target.value)}
+            onChange={(event) => updateDraft(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();

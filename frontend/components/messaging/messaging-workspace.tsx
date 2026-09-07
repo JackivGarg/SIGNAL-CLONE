@@ -7,7 +7,15 @@ import { AppShell } from "@/components/layout/app-shell";
 import { ConversationSidebar } from "@/components/messaging/conversation-sidebar";
 import { MessagePanel } from "@/components/messaging/message-panel";
 import { NewConversationDialog } from "@/components/messaging/new-conversation-dialog";
-import { api, type ConversationPreview, type Message, type User } from "@/lib/api";
+import {
+  api,
+  type ConversationPreview,
+  type Message,
+  type ReceiptUpdate,
+  type RealtimeEvent,
+  type User,
+} from "@/lib/api";
+import { useRealtime } from "@/lib/use-realtime";
 
 type MessagingWorkspaceProps = {
   user: User;
@@ -18,6 +26,9 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
+  const [lastIncomingMessage, setLastIncomingMessage] = useState<Message | null>(null);
+  const [receiptUpdates, setReceiptUpdates] = useState<Record<string, ReceiptUpdate["status"]>>({});
+  const [typingConversationId, setTypingConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     api
@@ -32,6 +43,55 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
   const selectedConversation = conversations.find(
     (conversation) => conversation.id === selectedConversationId,
   );
+
+  const handleRealtimeEvent = useCallback((event: RealtimeEvent) => {
+    if (event.type === "message.created") {
+      setLastIncomingMessage(event.message);
+      setConversations((currentConversations) =>
+        currentConversations
+          .map((conversation) =>
+            conversation.id === event.message.conversation_id
+              ? {
+                  ...conversation,
+                  last_message: {
+                    body: event.message.body,
+                    sender_id: event.message.sender_id,
+                    sent_at: event.message.sent_at,
+                  },
+                  last_message_at: event.message.sent_at,
+                  unread_count:
+                    conversation.id === selectedConversationId
+                      ? 0
+                      : conversation.unread_count + 1,
+                }
+              : conversation,
+          )
+          .sort((first, second) =>
+            (second.last_message_at ?? "").localeCompare(first.last_message_at ?? ""),
+          ),
+      );
+      return;
+    }
+
+    if (event.type === "receipt.updated") {
+      setReceiptUpdates((currentUpdates) => ({
+        ...currentUpdates,
+        [event.message_id]: event.status,
+      }));
+      return;
+    }
+
+    if (event.type === "typing.started") {
+      setTypingConversationId(event.conversation_id);
+    }
+    if (event.type === "typing.stopped") {
+      setTypingConversationId((currentConversationId) =>
+        currentConversationId === event.conversation_id ? null : currentConversationId,
+      );
+    }
+  }, [selectedConversationId]);
+
+  const { isConnected, sendEvent } = useRealtime(handleRealtimeEvent);
 
   function selectCreatedConversation(conversation: ConversationPreview) {
     setConversations((currentConversations) => [
@@ -83,6 +143,7 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
           onSelect={setSelectedConversationId}
           selectedConversationId={selectedConversationId}
           user={user}
+          isRealtimeConnected={isConnected}
         />
       }
     >
@@ -94,9 +155,18 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
         <MessagePanel
           conversation={selectedConversation}
           currentUser={user}
+          incomingMessage={lastIncomingMessage}
           key={selectedConversation.id}
           onMessageSent={updateConversationFromMessage}
           onMessagesRead={clearSelectedUnreadCount}
+          onTypingChange={(isTyping) =>
+            sendEvent({
+              type: isTyping ? "typing.started" : "typing.stopped",
+              conversation_id: selectedConversation.id,
+            })
+          }
+          receiptUpdates={receiptUpdates}
+          typing={typingConversationId === selectedConversation.id}
         />
       ) : (
         <section className="grid place-items-center p-8 text-center">

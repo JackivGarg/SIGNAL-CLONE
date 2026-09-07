@@ -15,6 +15,7 @@ type ConversationSidebarProps = {
   onSelect: (conversationId: string) => void;
   selectedConversationId: string | null;
   user: User;
+  isRealtimeConnected: boolean;
 };
 
 function formatConversationTime(value: string | null) {
@@ -34,6 +35,7 @@ export function ConversationSidebar({
   onSelect,
   selectedConversationId,
   user,
+  isRealtimeConnected,
 }: ConversationSidebarProps) {
   const [query, setQuery] = useState("");
   const visibleConversations = useMemo(() => {
@@ -51,7 +53,15 @@ export function ConversationSidebar({
       <header className="flex items-center justify-between px-5 pb-3 pt-5">
         <div className="flex items-center gap-3">
           <Avatar avatarKey={user.avatar_key} name={user.display_name} size={36} />
-          <h1 className="text-xl font-semibold tracking-tight">Signal</h1>
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">Signal</h1>
+            <p className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400">
+              <span
+                className={`size-1.5 rounded-full ${isRealtimeConnected ? "bg-emerald-500" : "bg-slate-300"}`}
+              />
+              {isRealtimeConnected ? "Connected" : "Reconnecting"}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <IconButton label="New message" onClick={onNewMessage}>
