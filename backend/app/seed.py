@@ -177,10 +177,7 @@ def seed_database(db: DbSession) -> None:
             sent_at=now - timedelta(minutes=minutes_ago),
             recipients=list(users.values())
             if conversation.kind == ConversationKind.GROUP
-            else [
-                users[key]
-                for key in conversation_key.split("-")
-            ],
+            else [users[key] for key in conversation_key.split("-")],
         )
 
     db.commit()

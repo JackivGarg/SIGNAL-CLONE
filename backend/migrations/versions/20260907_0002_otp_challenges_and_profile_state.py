@@ -24,7 +24,7 @@ def upgrade() -> None:
             sa.Boolean(),
             server_default=sa.false(),
             nullable=False,
-        )
+        ),
     )
 
     op.create_table(
@@ -35,8 +35,12 @@ def upgrade() -> None:
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("attempts", sa.Integer(), nullable=False),
         sa.Column("consumed_at", sa.DateTime(timezone=True)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.create_index("ix_otp_challenges_identifier", "otp_challenges", ["identifier"])
 

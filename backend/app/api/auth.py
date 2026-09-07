@@ -33,7 +33,9 @@ def set_session_cookie(response: Response, token: str) -> None:
 @router.get("/demo-users", response_model=list[UserResponse])
 def list_demo_users(db: DatabaseSession) -> list[User]:
     return list(
-        db.scalars(select(User).where(User.is_demo_user.is_(True)).order_by(User.display_name)).all()
+        db.scalars(
+            select(User).where(User.is_demo_user.is_(True)).order_by(User.display_name)
+        ).all()
     )
 
 

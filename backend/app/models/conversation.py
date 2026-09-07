@@ -37,9 +37,7 @@ class ConversationMember(Base):
     __tablename__ = "conversation_members"
     __table_args__ = (PrimaryKeyConstraint("conversation_id", "user_id"),)
 
-    conversation_id: Mapped[str] = mapped_column(
-        ForeignKey("conversations.id", ondelete="CASCADE")
-    )
+    conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id", ondelete="CASCADE"))
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     role: Mapped[MemberRole] = mapped_column(
         Enum(MemberRole, native_enum=False, create_constraint=True),
