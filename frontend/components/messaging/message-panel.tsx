@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, CheckCheck, Info, LockKeyhole, SendHorizontal } from "lucide-react";
+import { ArrowLeft, Check, CheckCheck, Info, LockKeyhole, SendHorizontal } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
@@ -15,6 +15,7 @@ type MessagePanelProps = {
   onMessagesRead: () => void;
   onTypingChange: (isTyping: boolean) => void;
   onDetails: () => void;
+  onBack: () => void;
   receiptUpdates: Record<string, "delivered" | "read">;
   typing: boolean;
   isPeerOnline: boolean;
@@ -32,6 +33,7 @@ export function MessagePanel({
   onMessagesRead,
   onTypingChange,
   onDetails,
+  onBack,
   receiptUpdates,
   typing,
   isPeerOnline,
@@ -154,6 +156,14 @@ export function MessagePanel({
     <section className="grid min-h-0 grid-rows-[auto_1fr_auto]">
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3">
         <div className="flex min-w-0 items-center gap-3">
+          <button
+            aria-label="Back to conversations"
+            className="-ml-2 grid size-9 shrink-0 place-items-center rounded-full text-slate-500 hover:bg-slate-100 min-[761px]:hidden"
+            onClick={onBack}
+            type="button"
+          >
+            <ArrowLeft size={20} />
+          </button>
           <Avatar avatarKey={conversation.avatar_key} name={conversation.title} size={40} />
           <div className="min-w-0">
             <h2 className="truncate font-semibold">{conversation.title}</h2>

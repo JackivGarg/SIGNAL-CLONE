@@ -35,6 +35,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
   const [isGroupDetailsOpen, setIsGroupDetailsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+  const [showConversationOnMobile, setShowConversationOnMobile] = useState(false);
 
   useEffect(() => {
     api
@@ -121,6 +122,12 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
     ]);
     setSelectedConversationId(conversation.id);
     setIsNewConversationOpen(false);
+    setShowConversationOnMobile(true);
+  }
+
+  function selectConversation(conversationId: string) {
+    setSelectedConversationId(conversationId);
+    setShowConversationOnMobile(true);
   }
 
   function updateConversationFromMessage(message: Message) {
@@ -156,13 +163,14 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
 
   return (
     <AppShell
+      showConversationOnMobile={showConversationOnMobile}
       sidebar={
         <ConversationSidebar
           conversations={conversations}
           isLoading={isLoading}
           onNewMessage={() => setIsNewConversationOpen(true)}
           onOpenSettings={() => setIsSettingsOpen(true)}
-          onSelect={setSelectedConversationId}
+          onSelect={selectConversation}
           selectedConversationId={selectedConversationId}
           user={user}
           isRealtimeConnected={isConnected}
@@ -183,6 +191,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
           onMessageSent={updateConversationFromMessage}
           onMessagesRead={clearSelectedUnreadCount}
           onDetails={() => selectedConversation.kind === "group" && setIsGroupDetailsOpen(true)}
+          onBack={() => setShowConversationOnMobile(false)}
           onTypingChange={(isTyping) =>
             sendEvent({
               type: isTyping ? "typing.started" : "typing.stopped",

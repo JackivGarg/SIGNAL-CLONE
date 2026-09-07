@@ -109,6 +109,18 @@ button {
   }
 
   .signal-sidebar {
+    display: block;
+  }
+
+  .signal-main {
     display: none;
+  }
+
+  .signal-shell--conversation .signal-sidebar {
+    display: none;
+  }
+
+  .signal-shell--conversation .signal-main {
+    display: grid;
   }
 }
