@@ -57,9 +57,11 @@ def serialize_conversation(
         peer = get_direct_peer(db, conversation.id, current_user_id)
         title = peer.display_name if peer else "Unknown user"
         avatar_key = peer.avatar_key if peer else "sky"
+        peer_user_id = peer.id if peer else None
     else:
         title = conversation.title or "Untitled group"
         avatar_key = conversation.avatar_key or "coral"
+        peer_user_id = None
 
     return ConversationPreview(
         id=conversation.id,
@@ -77,4 +79,5 @@ def serialize_conversation(
         ),
         last_message_at=conversation.last_message_at,
         unread_count=unread_count or 0,
+        peer_user_id=peer_user_id,
     )

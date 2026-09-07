@@ -21,6 +21,7 @@ export type ConversationPreview = {
   } | null;
   last_message_at: string | null;
   unread_count: number;
+  peer_user_id: string | null;
 };
 
 export type Contact = {

@@ -17,6 +17,7 @@ type ConversationSidebarProps = {
   selectedConversationId: string | null;
   user: User;
   isRealtimeConnected: boolean;
+  onlineUserIds: Set<string>;
 };
 
 function formatConversationTime(value: string | null) {
@@ -38,6 +39,7 @@ export function ConversationSidebar({
   selectedConversationId,
   user,
   isRealtimeConnected,
+  onlineUserIds,
 }: ConversationSidebarProps) {
   const [query, setQuery] = useState("");
   const visibleConversations = useMemo(() => {
@@ -112,6 +114,12 @@ export function ConversationSidebar({
                   <span className="absolute -bottom-1 -right-1 grid size-5 place-items-center rounded-full border-2 border-white bg-slate-700 text-white">
                     <UsersRound size={11} />
                   </span>
+                )}
+                {conversation.peer_user_id && onlineUserIds.has(conversation.peer_user_id) && (
+                  <span
+                    aria-label="Online"
+                    className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-white bg-emerald-500"
+                  />
                 )}
               </div>
               <span className="min-w-0 flex-1">

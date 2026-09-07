@@ -17,6 +17,7 @@ type MessagePanelProps = {
   onDetails: () => void;
   receiptUpdates: Record<string, "delivered" | "read">;
   typing: boolean;
+  isPeerOnline: boolean;
 };
 
 function formatMessageTime(value: string) {
@@ -33,6 +34,7 @@ export function MessagePanel({
   onDetails,
   receiptUpdates,
   typing,
+  isPeerOnline,
 }: MessagePanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
@@ -160,7 +162,9 @@ export function MessagePanel({
                 ? "Typing…"
                 : conversation.kind === "group"
                   ? "Group conversation"
-                  : "Private conversation"}
+                  : isPeerOnline
+                    ? "Online"
+                    : "Offline"}
             </p>
           </div>
         </div>

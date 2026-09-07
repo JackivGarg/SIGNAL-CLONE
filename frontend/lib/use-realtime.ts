@@ -16,6 +16,7 @@ export function useRealtime(onEvent: (event: RealtimeEvent) => void) {
   useEffect(() => {
     let isActive = true;
     let reconnectTimer: number | undefined;
+    let heartbeatTimer: number | undefined;
     let attempt = 0;
 
     function connect() {
@@ -25,6 +26,11 @@ export function useRealtime(onEvent: (event: RealtimeEvent) => void) {
       socket.onopen = () => {
         attempt = 0;
         setIsConnected(true);
+        heartbeatTimer = window.setInterval(() => {
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ type: "ping" }));
+          }
+        }, 25_000);
       };
       socket.onmessage = (message) => {
         try {
@@ -34,6 +40,7 @@ export function useRealtime(onEvent: (event: RealtimeEvent) => void) {
         }
       };
       socket.onclose = (event) => {
+        if (heartbeatTimer) window.clearInterval(heartbeatTimer);
         setIsConnected(false);
         if (!isActive || event.code === 1008) return;
         const delay = Math.min(1_000 * 2 ** attempt, 10_000);
@@ -47,6 +54,7 @@ export function useRealtime(onEvent: (event: RealtimeEvent) => void) {
     return () => {
       isActive = false;
       if (reconnectTimer) window.clearTimeout(reconnectTimer);
+      if (heartbeatTimer) window.clearInterval(heartbeatTimer);
       socketRef.current?.close();
     };
   }, []);

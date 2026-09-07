@@ -34,6 +34,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
   const [typingConversationId, setTypingConversationId] = useState<string | null>(null);
   const [isGroupDetailsOpen, setIsGroupDetailsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     api
@@ -50,6 +51,21 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
   );
 
   const handleRealtimeEvent = useCallback((event: RealtimeEvent) => {
+    if (event.type === "connection.ready") {
+      setOnlineUserIds(new Set(event.online_contact_ids));
+      return;
+    }
+
+    if (event.type === "presence.updated") {
+      setOnlineUserIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        if (event.is_online) nextIds.add(event.user_id);
+        else nextIds.delete(event.user_id);
+        return nextIds;
+      });
+      return;
+    }
+
     if (event.type === "message.created") {
       setLastIncomingMessage(event.message);
       setConversations((currentConversations) =>
@@ -150,6 +166,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
           selectedConversationId={selectedConversationId}
           user={user}
           isRealtimeConnected={isConnected}
+          onlineUserIds={onlineUserIds}
         />
       }
     >
@@ -174,6 +191,11 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
           }
           receiptUpdates={receiptUpdates}
           typing={typingConversationId === selectedConversation.id}
+          isPeerOnline={
+            selectedConversation.peer_user_id
+              ? onlineUserIds.has(selectedConversation.peer_user_id)
+              : false
+          }
         />
       ) : (
         <section className="grid place-items-center p-8 text-center">

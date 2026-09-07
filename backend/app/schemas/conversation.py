@@ -42,6 +42,7 @@ class ConversationPreview(BaseModel):
     last_message: LastMessagePreview | None
     last_message_at: datetime | None
     unread_count: int
+    peer_user_id: str | None = None
 
 
 class SendMessagePayload(BaseModel):
