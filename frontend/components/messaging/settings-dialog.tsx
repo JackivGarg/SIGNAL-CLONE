@@ -57,6 +57,15 @@ function PlaceholderRow({ detail, icon: Icon, label, onClick }: { detail?: strin
   </button>;
 }
 
+function ValueRow({ icon: Icon, label, onClick, value }: { icon: typeof Bell; label: string; onClick: () => void; value: string }) {
+  return <button className="signal-settings-value-row" onClick={onClick} type="button">
+    <Icon size={20} />
+    <b>{label}</b>
+    <span>{value}</span>
+    <ChevronRight size={19} />
+  </button>;
+}
+
 export function SettingsDialog({ onClose, onLogout, onThemeChange, theme, user }: SettingsDialogProps) {
   const [activeSection, setActiveSection] = useState<SettingsSection>("general");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -81,10 +90,10 @@ export function SettingsDialog({ onClose, onLogout, onThemeChange, theme, user }
       return <section className="signal-settings-content">
         <h2>Appearance</h2>
         <div className="signal-settings-card">
-          <PlaceholderRow icon={Globe2} label="Language" detail="System language" onClick={() => showComingSoon("Language selection")} />
+          <ValueRow icon={Globe2} label="Language" value="System language" onClick={() => showComingSoon("Language selection")} />
           <label className="signal-settings-theme-row"><span><Moon size={20} /><b>Theme</b></span><select aria-label="Theme" onChange={(event) => onThemeChange(event.target.value as ThemePreference)} value={theme}><option value="system">System</option><option value="dark">Dark</option><option value="light">Light</option></select></label>
-          <PlaceholderRow icon={Palette} label="Chat color" detail="Signal blue" onClick={() => showComingSoon("Chat color")} />
-          <PlaceholderRow icon={CircleHelp} label="Zoom level" detail="100%" onClick={() => showComingSoon("Zoom level")} />
+          <ValueRow icon={Palette} label="Chat color" value="Signal blue" onClick={() => showComingSoon("Chat color")} />
+          <ValueRow icon={CircleHelp} label="Zoom level" value="100%" onClick={() => showComingSoon("Zoom level")} />
         </div>
         <p className="signal-settings-help">Theme changes apply immediately and are remembered on this device.</p>
       </section>;

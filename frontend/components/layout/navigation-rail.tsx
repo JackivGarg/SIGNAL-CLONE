@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, MessageCircle, Phone, Settings2, Sticker } from "lucide-react";
+import { Menu, MessageCircle, Phone, Settings, Sticker } from "lucide-react";
 
 import { IconButton } from "@/components/ui/icon-button";
 
@@ -33,7 +33,7 @@ export function NavigationRail({
           <Sticker size={23} />
         </IconButton>
         <IconButton label="Settings" onClick={onOpenSettings}>
-          <Settings2 size={23} />
+          <Settings size={23} strokeWidth={2.5} />
         </IconButton>
       </div>
     </nav>
