@@ -4,7 +4,12 @@ from sqlalchemy import select
 from app.api.deps import CurrentUser, DatabaseSession
 from app.core.config import get_settings
 from app.models.user import User
-from app.schemas.auth import OtpChallengeResponse, RequestOtpPayload, VerifyOtpPayload
+from app.schemas.auth import (
+    OtpChallengeResponse,
+    RequestOtpPayload,
+    UpdateProfilePayload,
+    VerifyOtpPayload,
+)
 from app.schemas.user import UserResponse
 from app.services.auth import create_session
 from app.services.otp import consume_otp_challenge, create_otp_challenge
@@ -75,6 +80,19 @@ def verify_otp(payload: VerifyOtpPayload, response: Response, db: DatabaseSessio
     db.commit()
     set_session_cookie(response, create_session(db, user))
     return user
+
+
+@router.patch("/profile", response_model=UserResponse)
+def update_profile(
+    payload: UpdateProfilePayload, current_user: CurrentUser, db: DatabaseSession
+) -> User:
+    current_user.display_name = payload.display_name
+    current_user.avatar_key = payload.avatar_key
+    current_user.bio = payload.bio
+    current_user.is_profile_complete = True
+    db.commit()
+    db.refresh(current_user)
+    return current_user
 
 
 @router.get("/me", response_model=UserResponse)
