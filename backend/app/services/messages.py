@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession
 
+from app.models.conversation import ConversationMember
 from app.models.message import Message, MessageReceipt
 from app.models.user import User
 from app.schemas.conversation import MessageResponse
@@ -25,7 +26,9 @@ def serialize_message(db: DbSession, message: Message, viewer_id: str) -> Messag
     )
 
 
-def mark_messages_read(db: DbSession, conversation_id: str, user_id: str) -> int:
+def mark_messages_read(
+    db: DbSession, conversation_id: str, user_id: str
+) -> list[tuple[Message, MessageReceipt]]:
     unread_messages = list(
         db.scalars(
             select(Message).where(
@@ -35,7 +38,7 @@ def mark_messages_read(db: DbSession, conversation_id: str, user_id: str) -> int
         ).all()
     )
     now = datetime.now(UTC)
-    changed = 0
+    changed_receipts: list[tuple[Message, MessageReceipt]] = []
     for message in unread_messages:
         receipt = db.get(MessageReceipt, (message.id, user_id))
         if receipt is None:
@@ -44,6 +47,9 @@ def mark_messages_read(db: DbSession, conversation_id: str, user_id: str) -> int
         if receipt.read_at is None:
             receipt.delivered_at = receipt.delivered_at or now
             receipt.read_at = now
-            changed += 1
+            changed_receipts.append((message, receipt))
+    membership = db.get(ConversationMember, (conversation_id, user_id))
+    if membership is not None:
+        membership.last_read_at = now
     db.commit()
-    return changed
+    return changed_receipts

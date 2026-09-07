@@ -143,6 +143,7 @@ async def send_message(
     )
     db.add(message)
     db.flush()
+    now = datetime.now(UTC)
     recipients = list(
         db.scalars(
             select(ConversationMember.user_id).where(
@@ -152,7 +153,14 @@ async def send_message(
         ).all()
     )
     db.add_all(
-        [MessageReceipt(message_id=message.id, recipient_id=user_id) for user_id in recipients]
+        [
+            MessageReceipt(
+                message_id=message.id,
+                recipient_id=user_id,
+                delivered_at=now if connection_manager.is_connected(user_id) else None,
+            )
+            for user_id in recipients
+        ]
     )
     conversation.last_message_at = message.sent_at
     db.commit()
@@ -166,16 +174,39 @@ async def send_message(
                 "message": serialize_message(db, message, recipient_id).model_dump(mode="json"),
             },
         )
+        if connection_manager.is_connected(recipient_id):
+            await connection_manager.send_to_user(
+                current_user.id,
+                {
+                    "type": "receipt.updated",
+                    "message_id": message.id,
+                    "recipient_id": recipient_id,
+                    "status": "delivered",
+                    "occurred_at": now.isoformat(),
+                },
+            )
 
     return serialize_message(db, message, current_user.id)
 
 
 @router.post("/{conversation_id}/read", response_model=MarkReadResponse)
-def mark_conversation_read(
+async def mark_conversation_read(
     conversation_id: str, current_user: CurrentUser, db: DatabaseSession
 ) -> MarkReadResponse:
     if get_member_conversation(db, conversation_id, current_user.id) is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Conversation was not found."
         )
-    return MarkReadResponse(marked_read=mark_messages_read(db, conversation_id, current_user.id))
+    read_receipts = mark_messages_read(db, conversation_id, current_user.id)
+    for message, receipt in read_receipts:
+        await connection_manager.send_to_user(
+            message.sender_id,
+            {
+                "type": "receipt.updated",
+                "message_id": message.id,
+                "recipient_id": current_user.id,
+                "status": "read",
+                "occurred_at": receipt.read_at.isoformat() if receipt.read_at else None,
+            },
+        )
+    return MarkReadResponse(marked_read=len(read_receipts))
