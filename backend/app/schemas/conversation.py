@@ -3,6 +3,10 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class DirectConversationPayload(BaseModel):
+    user_id: str
+
+
 class LastMessagePreview(BaseModel):
     body: str
     sender_id: str
