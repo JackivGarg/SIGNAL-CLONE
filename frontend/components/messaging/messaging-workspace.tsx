@@ -88,6 +88,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
                     body: event.message.body,
                     sender_id: event.message.sender_id,
                     sent_at: event.message.sent_at,
+                    receipt_status: null,
                   },
                   last_message_at: event.message.sent_at,
                   unread_count:
@@ -150,6 +151,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
                   body: message.body,
                   sender_id: message.sender_id,
                   sent_at: message.sent_at,
+                  receipt_status: "sent" as const,
                 },
                 last_message_at: message.sent_at,
               }
@@ -176,7 +178,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
         <NavigationRail
           isVisible={showRail}
           onOpenSettings={() => setIsSettingsOpen(true)}
-          onPlaceholder={(feature) => setNotice(`${feature} are an interface placeholder in this assignment demo.`)}
+          onPlaceholder={(feature) => setNotice(`${feature}: coming soon.`)}
           onToggle={() => setShowRail((visible) => !visible)}
         />
       }
@@ -190,6 +192,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
           onOpenSettings={() => setIsSettingsOpen(true)}
           onSelect={selectConversation}
           selectedConversationId={selectedConversationId}
+          user={user}
           isRealtimeConnected={isConnected}
           onlineUserIds={onlineUserIds}
         />
@@ -209,7 +212,7 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
           onMessagesRead={clearSelectedUnreadCount}
           onDetails={() => selectedConversation.kind === "group" && setIsGroupDetailsOpen(true)}
           onBack={() => setShowConversationOnMobile(false)}
-          onPlaceholder={(feature) => setNotice(`${feature} are not included in the assignment's functional scope.`)}
+          onPlaceholder={(feature) => setNotice(`${feature}: coming soon.`)}
           onTypingChange={(isTyping) =>
             sendEvent({
               type: isTyping ? "typing.started" : "typing.stopped",

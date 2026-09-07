@@ -18,11 +18,11 @@ export function NavigationRail({
   onToggle,
 }: NavigationRailProps) {
   return (
-    <nav aria-label="Signal navigation" className="signal-rail">
-      <div className="signal-rail__top">
-        <IconButton label={isVisible ? "Hide tabs" : "Show tabs"} onClick={onToggle}>
-          <Menu size={23} />
-        </IconButton>
+    <nav aria-label="Signal navigation" className={`signal-rail ${isVisible ? "" : "signal-rail--collapsed"}`}>
+      <IconButton label={isVisible ? "Hide tabs" : "Show tabs"} onClick={onToggle}>
+        <Menu size={23} />
+      </IconButton>
+      <div className="signal-rail__tabs">
         <IconButton active label="Chats">
           <MessageCircle size={23} />
         </IconButton>
@@ -32,10 +32,10 @@ export function NavigationRail({
         <IconButton label="Stories" onClick={() => onPlaceholder("Stories")}> 
           <Sticker size={23} />
         </IconButton>
+        <IconButton label="Settings" onClick={onOpenSettings}>
+          <Settings2 size={23} />
+        </IconButton>
       </div>
-      <IconButton label="Settings" onClick={onOpenSettings}>
-        <Settings2 size={23} />
-      </IconButton>
     </nav>
   );
 }

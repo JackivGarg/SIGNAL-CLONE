@@ -32,6 +32,7 @@ class LastMessagePreview(BaseModel):
     body: str
     sender_id: str
     sent_at: datetime
+    receipt_status: str | None = None
 
 
 class ConversationPreview(BaseModel):

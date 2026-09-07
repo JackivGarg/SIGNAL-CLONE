@@ -3,7 +3,7 @@
 import { Edit3, ListFilter, MoreHorizontal, Search, UsersRound } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import type { ConversationPreview } from "@/lib/api";
+import type { ConversationPreview, User } from "@/lib/api";
 import { Avatar } from "@/components/ui/avatar";
 import { IconButton } from "@/components/ui/icon-button";
 
@@ -14,6 +14,7 @@ type ConversationSidebarProps = {
   onOpenSettings: () => void;
   onSelect: (conversationId: string) => void;
   selectedConversationId: string | null;
+  user: User;
   isRealtimeConnected: boolean;
   onlineUserIds: Set<string>;
 };
@@ -35,6 +36,7 @@ export function ConversationSidebar({
   onOpenSettings,
   onSelect,
   selectedConversationId,
+  user,
   isRealtimeConnected,
   onlineUserIds,
 }: ConversationSidebarProps) {
@@ -121,8 +123,16 @@ export function ConversationSidebar({
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline gap-2">
                   <span className="truncate text-[16px] font-semibold text-[var(--signal-text)]">{conversation.title}</span>
-                  <span className="ml-auto shrink-0 text-[13px] text-[var(--signal-muted)]">
-                    {formatConversationTime(conversation.last_message_at)}
+                  <span className="signal-conversation-time">
+                    <span>{formatConversationTime(conversation.last_message_at)}</span>
+                    {conversation.last_message?.sender_id === user.id && conversation.last_message.receipt_status && (
+                      <span
+                        aria-label={conversation.last_message.receipt_status}
+                        className={`signal-list-receipt signal-receipt signal-receipt--${conversation.last_message.receipt_status}`}
+                      >
+                        <i /><i />
+                      </span>
+                    )}
                   </span>
                 </span>
                 <span className="mt-1 flex items-center gap-2">

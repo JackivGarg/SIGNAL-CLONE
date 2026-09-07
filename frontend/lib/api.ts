@@ -18,6 +18,7 @@ export type ConversationPreview = {
     body: string;
     sender_id: string;
     sent_at: string;
+    receipt_status: "sent" | "delivered" | "read" | null;
   } | null;
   last_message_at: string | null;
   unread_count: number;

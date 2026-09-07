@@ -20,12 +20,10 @@ body { margin: 0; background: var(--signal-panel); color: var(--signal-text); fo
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 
-.signal-shell { display: grid; grid-template-columns: minmax(350px, 400px) minmax(0, 1fr); min-height: 100vh; }
-.signal-shell--rail { grid-template-columns: 100px minmax(350px, 400px) minmax(0, 1fr); }
-.signal-rail-wrap { display: none; min-width: 0; }
-.signal-shell--rail .signal-rail-wrap { display: block; }
-.signal-rail { display: flex; height: 100vh; flex-direction: column; justify-content: space-between; border-right: 1px solid #2a2a2b; background: var(--signal-rail); padding: 16px 14px 20px; }
-.signal-rail__top { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.signal-shell, .signal-shell--rail { display: grid; grid-template-columns: 100px minmax(350px, 400px) minmax(0, 1fr); min-height: 100vh; }
+.signal-rail-wrap { display: block; min-width: 0; }
+.signal-rail { display: flex; height: 100vh; flex-direction: column; align-items: center; border-right: 1px solid #2a2a2b; background: var(--signal-rail); padding: 16px 14px 20px; }
+.signal-rail__tabs { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 8px; margin-top: 8px; }.signal-rail__tabs .icon-button:last-child { margin-top: auto; }.signal-rail--collapsed .signal-rail__tabs { display: none; }
 .signal-sidebar { min-width: 0; border-right: 1px solid #2c2c2d; background: var(--signal-sidebar); }
 .signal-main { display: grid; min-width: 0; background: var(--signal-panel); }
 
@@ -49,6 +47,7 @@ button { cursor: pointer; }
 .signal-search-input { width: 100%; border: 0; border-radius: 9px; outline: 0; background: #2d2d2e; color: var(--signal-text); padding: 9px 12px 9px 38px; font-size: 15px; transition: box-shadow 150ms ease; }.signal-search-input::placeholder { color: #8f9094; }.signal-search-input:focus { box-shadow: 0 0 0 2px #467eee; }
 .signal-conversation-list { min-height: 0; flex: 1; overflow-y: auto; padding: 0 14px 20px; }
 .signal-conversation-row { display: flex; width: 100%; align-items: center; gap: 13px; border: 0; border-radius: 12px; background: transparent; padding: 12px 16px; color: inherit; text-align: left; transition: background-color 120ms ease; }.signal-conversation-row:hover, .signal-conversation-row--selected { background: #343435; }
+.signal-conversation-time { display: flex; min-width: 42px; flex-direction: column; align-items: flex-end; gap: 5px; color: var(--signal-muted); font-size: 13px; }.signal-list-receipt { height: 12px; color: #d4d4d7; }.signal-list-receipt i { width: 12px; height: 12px; }
 .signal-group-badge { position: absolute; right: -4px; bottom: -4px; display: grid; width: 20px; height: 20px; place-items: center; border: 2px solid var(--signal-sidebar); border-radius: 50%; background: #d8e8f2; color: #0875aa; }.signal-online-badge { position: absolute; right: 0; bottom: 0; width: 11px; height: 11px; border: 2px solid var(--signal-sidebar); border-radius: 50%; background: #4db16a; }
 
 .signal-message-panel { display: grid; min-height: 0; grid-template-rows: auto 1fr auto; background: #191919; }

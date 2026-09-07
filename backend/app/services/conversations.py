@@ -63,6 +63,20 @@ def serialize_conversation(
         avatar_key = conversation.avatar_key or "coral"
         peer_user_id = None
 
+    receipt_status: str | None = None
+    if last_message and last_message.sender_id == current_user_id:
+        receipts = list(
+            db.scalars(
+                select(MessageReceipt).where(MessageReceipt.message_id == last_message.id)
+            ).all()
+        )
+        if receipts and all(receipt.read_at is not None for receipt in receipts):
+            receipt_status = "read"
+        elif any(receipt.delivered_at is not None for receipt in receipts):
+            receipt_status = "delivered"
+        else:
+            receipt_status = "sent"
+
     return ConversationPreview(
         id=conversation.id,
         kind=conversation.kind.value,
@@ -73,6 +87,7 @@ def serialize_conversation(
                 body=last_message.body,
                 sender_id=last_message.sender_id,
                 sent_at=last_message.sent_at,
+                receipt_status=receipt_status,
             )
             if last_message
             else None

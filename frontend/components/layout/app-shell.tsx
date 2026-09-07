@@ -15,7 +15,7 @@ export function AppShell({ children, rail, showRail, showConversationOnMobile, s
         showConversationOnMobile ? "signal-shell--conversation" : ""
       }`}
     >
-      <aside className="signal-rail-wrap">{rail}</aside>
+      <aside aria-label="Primary navigation" className="signal-rail-wrap">{rail}</aside>
       <aside aria-label="Conversations" className="signal-sidebar">
         {sidebar}
       </aside>
