@@ -47,10 +47,19 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   return <main className="signal-auth-screen">
     <section className="signal-auth-card">
       <aside className="signal-auth-brand">
-        <span className="signal-auth-logo"><MessageCircle size={27} /></span>
-        <p>Signal Clone</p>
-        <h1>Private messaging, ready to explore.</h1>
-        <span className="signal-auth-brand-note"><LockKeyhole size={17} />Real-time chats, groups, and delivery states</span>
+        <div className="signal-auth-brand-heading">
+          <span className="signal-auth-logo"><MessageCircle size={27} /></span>
+          <div><b>Signal Clone</b><small>Secure messaging demo</small></div>
+        </div>
+        <p>Scaler full-stack assignment</p>
+        <h1>Start a conversation that feels alive.</h1>
+        <span className="signal-auth-description">Review direct chats, group controls, delivery receipts, and live presence in one polished demo.</span>
+        <div className="signal-auth-preview" aria-hidden="true">
+          <div><span className="signal-auth-preview-avatar">SC</span><b>Signal Clone</b><i /></div>
+          <p>Welcome! Try a demo account to explore the chat experience.</p>
+          <span>Delivered <i>● ●</i></span>
+        </div>
+        <span className="signal-auth-brand-note"><LockKeyhole size={17} />Live chats, groups, and delivery states</span>
       </aside>
       <div className="signal-auth-content">
         <div className="signal-auth-tabs" role="tablist">

@@ -76,8 +76,17 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
       return;
     }
 
+    if (event.type === "conversation.created") {
+      setConversations((currentConversations) => [
+        event.conversation,
+        ...currentConversations.filter((conversation) => conversation.id !== event.conversation.id),
+      ]);
+      return;
+    }
+
     if (event.type === "message.created") {
       setLastIncomingMessage(event.message);
+      void api.getConversations().then(setConversations).catch(() => undefined);
       setConversations((currentConversations) =>
         currentConversations
           .map((conversation) =>

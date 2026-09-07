@@ -66,6 +66,7 @@ export type GroupMember = {
 
 export type RealtimeEvent =
   | { type: "connection.ready"; user_id: string; online_contact_ids: string[] }
+  | { type: "conversation.created"; conversation: ConversationPreview }
   | { type: "message.created"; message: Message }
   | ReceiptUpdate
   | { type: "typing.started" | "typing.stopped"; conversation_id: string; user_id: string }

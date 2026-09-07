@@ -28,6 +28,22 @@ from app.websocket.manager import connection_manager
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
 
+async def notify_conversation_created(
+    db: DatabaseSession, conversation: Conversation, user_ids: list[str]
+) -> None:
+    """Tell newly added members to insert a conversation without a page refresh."""
+    for user_id in user_ids:
+        await connection_manager.send_to_user(
+            user_id,
+            {
+                "type": "conversation.created",
+                "conversation": serialize_conversation(db, conversation, user_id).model_dump(
+                    mode="json"
+                ),
+            },
+        )
+
+
 def serialize_group_member(member: ConversationMember, user: User) -> GroupMemberResponse:
     return GroupMemberResponse(
         user_id=user.id,
@@ -78,7 +94,7 @@ def list_conversations(current_user: CurrentUser, db: DatabaseSession) -> list[C
 
 
 @router.post("/direct", response_model=ConversationPreview, status_code=status.HTTP_201_CREATED)
-def create_direct_conversation(
+async def create_direct_conversation(
     payload: DirectConversationPayload,
     response: Response,
     current_user: CurrentUser,
@@ -92,7 +108,8 @@ def create_direct_conversation(
 
     direct_key = ":".join(sorted((current_user.id, target.id)))
     conversation = db.scalar(select(Conversation).where(Conversation.direct_key == direct_key))
-    if conversation is None:
+    created = conversation is None
+    if created:
         conversation = Conversation(
             kind=ConversationKind.DIRECT,
             direct_key=direct_key,
@@ -114,11 +131,14 @@ def create_direct_conversation(
     else:
         response.status_code = status.HTTP_200_OK
 
+    if created:
+        await notify_conversation_created(db, conversation, [target.id])
+
     return serialize_conversation(db, conversation, current_user.id)
 
 
 @router.post("/groups", response_model=ConversationPreview, status_code=status.HTTP_201_CREATED)
-def create_group_conversation(
+async def create_group_conversation(
     payload: GroupCreatePayload, current_user: CurrentUser, db: DatabaseSession
 ) -> ConversationPreview:
     title = " ".join(payload.title.split())
@@ -156,6 +176,7 @@ def create_group_conversation(
     )
     db.commit()
     db.refresh(conversation)
+    await notify_conversation_created(db, conversation, [member.id for member in members])
     return serialize_conversation(db, conversation, current_user.id)
 
 
@@ -181,7 +202,7 @@ def list_group_members(
     response_model=GroupMemberResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def add_group_member(
+async def add_group_member(
     conversation_id: str,
     payload: AddGroupMemberPayload,
     current_user: CurrentUser,
@@ -201,6 +222,7 @@ def add_group_member(
     db.add(member)
     db.commit()
     db.refresh(member)
+    await notify_conversation_created(db, conversation, [user.id])
     return serialize_group_member(member, user)
 
 
