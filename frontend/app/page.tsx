@@ -1,12 +1,11 @@
 "use client";
 
-import { LockKeyhole, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AuthScreen } from "@/components/auth/auth-screen";
 import { ProfileSetup } from "@/components/auth/profile-setup";
-import { AppShell } from "@/components/layout/app-shell";
-import { SidebarPreview } from "@/components/layout/sidebar-preview";
+import { MessagingWorkspace } from "@/components/messaging/messaging-workspace";
 import { ApiError, api, type User } from "@/lib/api";
 
 export default function HomePage() {
@@ -61,22 +60,5 @@ export default function HomePage() {
     return <ProfileSetup onComplete={setUser} user={user} />;
   }
 
-  return (
-    <AppShell
-      sidebar={<SidebarPreview />}
-      user={{ avatarKey: user.avatar_key, displayName: user.display_name }}
-    >
-      <section className="grid place-items-center p-8 text-center">
-        <div className="max-w-sm">
-          <div className="mx-auto mb-5 grid size-16 place-items-center rounded-full bg-blue-100 text-blue-600">
-            <LockKeyhole size={28} />
-          </div>
-          <h2 className="text-2xl font-semibold tracking-tight">Welcome, {user.display_name}</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-500">
-            Select a conversation to start messaging securely.
-          </p>
-        </div>
-      </section>
-    </AppShell>
-  );
+  return <MessagingWorkspace user={user} />;
 }

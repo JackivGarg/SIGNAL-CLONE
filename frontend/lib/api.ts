@@ -9,6 +9,29 @@ export type User = {
   is_profile_complete: boolean;
 };
 
+export type ConversationPreview = {
+  id: string;
+  kind: "direct" | "group";
+  title: string;
+  avatar_key: string;
+  last_message: {
+    body: string;
+    sender_id: string;
+    sent_at: string;
+  } | null;
+  last_message_at: string | null;
+  unread_count: number;
+};
+
+export type Contact = {
+  id: string;
+  identifier: string;
+  display_name: string;
+  avatar_key: string;
+  nickname: string | null;
+  last_seen_at: string | null;
+};
+
 type OtpChallenge = {
   challenge_id: string;
   expires_at: string;
@@ -79,5 +102,14 @@ export const api = {
         avatar_key: payload.avatarKey,
         bio: payload.bio || null,
       },
+    }),
+  getConversations: () => request<ConversationPreview[]>("/conversations"),
+  getContacts: (query = "") => request<Contact[]>(`/contacts?query=${encodeURIComponent(query)}`),
+  addContact: (identifier: string) =>
+    request<Contact>("/contacts", { method: "POST", body: { identifier } }),
+  createDirectConversation: (userId: string) =>
+    request<ConversationPreview>("/conversations/direct", {
+      method: "POST",
+      body: { user_id: userId },
     }),
 };
