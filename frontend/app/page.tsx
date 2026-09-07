@@ -10,11 +10,13 @@ import { ApiError, api, type User } from "@/lib/api";
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
+  const [demoUsers, setDemoUsers] = useState<User[]>([]);
   const [state, setState] = useState<"loading" | "authenticated" | "unauthenticated" | "error">(
     "loading",
   );
 
   useEffect(() => {
+    api.getDemoUsers().then(setDemoUsers).catch(() => undefined);
     api
       .getCurrentUser()
       .then((currentUser) => {
@@ -53,7 +55,7 @@ export default function HomePage() {
   }
 
   if (state === "unauthenticated" || user === null) {
-    return <AuthScreen onAuthenticated={(currentUser) => { setUser(currentUser); setState("authenticated"); }} />;
+    return <AuthScreen initialDemoUsers={demoUsers} onAuthenticated={(currentUser) => { setUser(currentUser); setState("authenticated"); }} />;
   }
 
   if (!user.is_profile_complete) {

@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, Response, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from app.api.deps import CurrentUser, DatabaseSession
 from app.models.base import new_id
@@ -84,7 +84,14 @@ def list_conversations(current_user: CurrentUser, db: DatabaseSession) -> list[C
         db.scalars(
             select(Conversation)
             .join(ConversationMember)
-            .where(ConversationMember.user_id == current_user.id)
+            .where(
+                ConversationMember.user_id == current_user.id,
+                or_(
+                    Conversation.kind != ConversationKind.DIRECT,
+                    Conversation.created_by_id == current_user.id,
+                    Conversation.last_message_at.is_not(None),
+                ),
+            )
             .order_by(Conversation.last_message_at.desc())
         ).all()
     )
@@ -94,7 +101,7 @@ def list_conversations(current_user: CurrentUser, db: DatabaseSession) -> list[C
 
 
 @router.post("/direct", response_model=ConversationPreview, status_code=status.HTTP_201_CREATED)
-async def create_direct_conversation(
+def create_direct_conversation(
     payload: DirectConversationPayload,
     response: Response,
     current_user: CurrentUser,
@@ -108,8 +115,7 @@ async def create_direct_conversation(
 
     direct_key = ":".join(sorted((current_user.id, target.id)))
     conversation = db.scalar(select(Conversation).where(Conversation.direct_key == direct_key))
-    created = conversation is None
-    if created:
+    if conversation is None:
         conversation = Conversation(
             kind=ConversationKind.DIRECT,
             direct_key=direct_key,
@@ -130,9 +136,6 @@ async def create_direct_conversation(
         db.refresh(conversation)
     else:
         response.status_code = status.HTTP_200_OK
-
-    if created:
-        await notify_conversation_created(db, conversation, [target.id])
 
     return serialize_conversation(db, conversation, current_user.id)
 

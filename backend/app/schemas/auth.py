@@ -8,6 +8,8 @@ IDENTIFIER_PATTERN = re.compile(r"^(?:\+?[0-9]{7,15}|[a-z0-9._-]{3,80})$", re.IG
 
 def normalize_identifier(value: str) -> str:
     normalized = value.strip().lower()
+    if normalized.startswith("@"):
+        normalized = normalized[1:]
     if not IDENTIFIER_PATTERN.fullmatch(normalized):
         raise ValueError("Use a username or a valid phone number.")
     return normalized

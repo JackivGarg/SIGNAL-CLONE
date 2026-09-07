@@ -6,11 +6,11 @@ import { FormEvent, useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { ApiError, api, type User } from "@/lib/api";
 
-type AuthScreenProps = { onAuthenticated: (user: User) => void; };
+type AuthScreenProps = { initialDemoUsers?: User[]; onAuthenticated: (user: User) => void; };
 
-export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
+export function AuthScreen({ initialDemoUsers = [], onAuthenticated }: AuthScreenProps) {
   const [mode, setMode] = useState<"demo" | "signup">("demo");
-  const [demoUsers, setDemoUsers] = useState<User[]>([]);
+  const [demoUsers, setDemoUsers] = useState<User[]>(initialDemoUsers);
   const [identifier, setIdentifier] = useState("");
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [demoCode, setDemoCode] = useState<string | null>(null);
@@ -18,7 +18,10 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { api.getDemoUsers().then(setDemoUsers).catch(() => setError("Unable to load demo accounts. Please refresh.")); }, []);
+  useEffect(() => {
+    if (demoUsers.length) return;
+    api.getDemoUsers().then(setDemoUsers).catch(() => setError("Unable to load demo accounts. Please refresh."));
+  }, [demoUsers.length]);
 
   async function loginDemo(user: User) {
     setBusy(user.id); setError(null);

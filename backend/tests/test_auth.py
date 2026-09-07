@@ -77,3 +77,12 @@ def test_registered_phone_user_can_be_found_and_added_as_a_contact(client: TestC
     contacts_response = client.get("/api/contacts?query=1234567")
     assert contacts_response.status_code == 200
     assert [contact["identifier"] for contact in contacts_response.json()] == ["+15551234567"]
+
+
+def test_username_lookup_accepts_displayed_at_prefix(client: TestClient) -> None:
+    assert client.post("/api/auth/demo-login/jack").status_code == 200
+    response = client.post("/api/contacts", json={"identifier": " @AVA "})
+
+    assert response.status_code == 201
+    assert response.json()["identifier"] == "ava"
+    assert response.json()["display_name"] == "Ava Patel"
