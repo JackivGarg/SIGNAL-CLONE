@@ -61,11 +61,23 @@ def login_as_demo_user(identifier: str, response: Response, db: DatabaseSession)
 
 @router.post("/request-otp", response_model=OtpChallengeResponse)
 def request_otp(payload: RequestOtpPayload, db: DatabaseSession) -> OtpChallengeResponse:
-    if db.scalar(select(User.id).where(User.identifier == payload.username)):
+    username_user = db.scalar(select(User).where(User.identifier == payload.username))
+    phone_user = db.scalar(select(User).where(User.phone_number == payload.phone_number))
+
+    # A matching pair is an existing account signing in again. A partial or
+    # mismatched pair would otherwise let one account claim another user's
+    # phone number or username.
+    if username_user is not None and phone_user is not None:
+        if username_user.id != phone_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="That phone number and username belong to different accounts.",
+            )
+    elif username_user is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Username is already taken."
         )
-    if db.scalar(select(User.id).where(User.phone_number == payload.phone_number)):
+    elif phone_user is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Phone number is already registered."
         )
@@ -98,6 +110,11 @@ def verify_otp(payload: VerifyOtpPayload, response: Response, db: DatabaseSessio
         )
         db.add(user)
         db.flush()
+    elif challenge.username != user.identifier:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That phone number and username do not identify the same account.",
+        )
 
     db.commit()
     set_session_cookie(response, create_session(db, user))

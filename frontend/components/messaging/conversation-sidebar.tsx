@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit3, ListFilter, MoreHorizontal, Search, UsersRound } from "lucide-react";
+import { Check, Edit3, ListFilter, MoreHorizontal, Search, UsersRound } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { ConversationPreview, User } from "@/lib/api";
@@ -41,15 +41,20 @@ export function ConversationSidebar({
   onlineUserIds,
 }: ConversationSidebarProps) {
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "unread" | "groups">("all");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const visibleConversations = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) return conversations;
-    return conversations.filter((conversation) =>
-      `${conversation.title} ${conversation.last_message?.body ?? ""}`
+    return conversations.filter((conversation) => {
+      if (filter === "unread" && conversation.unread_count === 0) return false;
+      if (filter === "groups" && conversation.kind !== "group") return false;
+      return !normalizedQuery || `${conversation.title} ${conversation.last_message?.body ?? ""}`
         .toLowerCase()
-        .includes(normalizedQuery),
-    );
-  }, [conversations, query]);
+        .includes(normalizedQuery);
+    });
+  }, [conversations, filter, query]);
+
+  const filterLabel = filter === "all" ? "All chats" : filter === "unread" ? "Unread chats" : "Groups";
 
   return (
     <div className="signal-conversation-sidebar">
@@ -82,9 +87,33 @@ export function ConversationSidebar({
           value={query}
         />
       </label>
-      <IconButton label="Filter conversations" onClick={() => undefined}>
+      <IconButton
+        active={filter !== "all" || isFilterOpen}
+        aria-expanded={isFilterOpen}
+        label={`Filter conversations: ${filterLabel}`}
+        onClick={() => setIsFilterOpen((open) => !open)}
+      >
         <ListFilter size={20} />
       </IconButton>
+      {isFilterOpen && (
+        <div className="signal-filter-menu" role="menu">
+          {(["all", "unread", "groups"] as const).map((option) => {
+            const label = option === "all" ? "All chats" : option === "unread" ? "Unread" : "Groups";
+            return (
+              <button
+                key={option}
+                onClick={() => { setFilter(option); setIsFilterOpen(false); }}
+                role="menuitemradio"
+                aria-checked={filter === option}
+                type="button"
+              >
+                <span>{label}</span>
+                {filter === option && <Check size={17} />}
+              </button>
+            );
+          })}
+        </div>
+      )}
       </div>
       <div className="signal-conversation-list">
         {isLoading ? (
@@ -151,7 +180,9 @@ export function ConversationSidebar({
         ) : (
           <div className="grid h-full place-items-center px-8 text-center">
             <p className="text-sm leading-6 text-[var(--signal-muted)]">
-              {query ? "No matching conversations." : "No conversations yet."}
+              {filter === "all"
+                ? query ? "No matching conversations." : "No conversations yet."
+                : `No ${filterLabel.toLowerCase()} match.`}
             </p>
           </div>
         )}

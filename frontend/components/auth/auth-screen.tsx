@@ -68,7 +68,7 @@ export function AuthScreen({ initialDemoUsers = [], onAuthenticated }: AuthScree
       <div className="signal-auth-content">
         <div className="signal-auth-tabs" role="tablist">
           <button aria-selected={mode === "demo"} className={mode === "demo" ? "signal-auth-tab--active" : ""} onClick={() => { setMode("demo"); setChallengeId(null); setError(null); }} role="tab" type="button">Try demo</button>
-          <button aria-selected={mode === "signup"} className={mode === "signup" ? "signal-auth-tab--active" : ""} onClick={() => { setMode("signup"); setError(null); }} role="tab" type="button">Create account</button>
+          <button aria-selected={mode === "signup"} className={mode === "signup" ? "signal-auth-tab--active" : ""} onClick={() => { setMode("signup"); setError(null); }} role="tab" type="button">Create or sign in</button>
         </div>
         {mode === "demo" ? <div className="signal-auth-body">
           <h2>Choose a demo person</h2><p>Each account has contacts, direct chats, and a shared group ready for review.</p>
@@ -79,7 +79,7 @@ export function AuthScreen({ initialDemoUsers = [], onAuthenticated }: AuthScree
           <input autoComplete="one-time-code" autoFocus className="signal-auth-code-input" inputMode="numeric" maxLength={6} onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))} placeholder="123456" value={code} />
           <button className="signal-auth-primary" disabled={busy !== null || code.length !== 6} type="submit">{busy === "verify" ? "Verifying…" : "Verify and continue"}<ArrowRight size={18} /></button>
         </form> : <form className="signal-auth-body" onSubmit={submitIdentifier}>
-          <span className="signal-auth-form-icon"><Smartphone size={23} /></span><h2>Create your account</h2><p>Add both your phone number and a unique username. The verification code is shown securely in this demo.</p>
+          <span className="signal-auth-form-icon"><Smartphone size={23} /></span><h2>Continue with your account</h2><p>Enter both your phone number and username. New details create an account; an existing matching pair signs you in.</p>
           <label htmlFor="phone-number">Phone number</label><input autoFocus id="phone-number" inputMode="tel" minLength={7} onChange={(event) => setPhoneNumber(event.target.value)} placeholder="+919876543210" required value={phoneNumber} />
           <label htmlFor="username">Username</label><input autoCapitalize="none" autoComplete="username" id="username" minLength={3} onChange={(event) => setUsername(event.target.value)} placeholder="comate" required spellCheck={false} value={username} />
           <button className="signal-auth-primary" disabled={busy !== null} type="submit">{busy === "otp" ? "Preparing verification…" : "Continue"}<ArrowRight size={18} /></button>

@@ -23,12 +23,23 @@ All four accounts have contacts and seeded conversations. They also share the **
 group. Open the application in two browser profiles with different users to observe real-time
 messages, typing indicators, presence, and receipts.
 
-The **Create account** flow uses transparent mocked verification. The demo OTP is `123456` and is
-shown in the interface, so the project never depends on an SMS provider during evaluation.
+The **Create or sign in** flow uses transparent mocked verification. Both a phone number and a
+username are required. A new pair creates an account; the same matching pair signs the user back in
+after logout. The demo OTP is `123456` and is shown in the interface, so evaluation never depends on
+an SMS provider.
+
+### Reviewer navigation
+
+- Use the search field above the chat list to filter conversations that already exist.
+- To find a registered user who is not yet in your contacts, select the **pen icon** and choose
+  **Find by username** or **Find by phone number**. Usernames work with or without a leading `@`.
+- Use the filter icon beside conversation search to show all chats, unread chats, or groups.
+- Open two browser profiles with different accounts to verify messages, typing, presence, and
+  delivery/read receipts in real time.
 
 ## Features
 
-- Demo login and mocked OTP registration
+- Demo login plus mocked OTP registration and returning-user sign-in
 - Profile setup with display name, avatar, and bio
 - Secure, hashed session tokens in HTTP-only cookies
 - Contact search and adding registered users
@@ -152,6 +163,11 @@ Production uses a single Azure Linux VM with:
 The provisioning entrypoint is `deploy/provision-vm.sh`. It can be rerun safely: it fast-forwards
 the repository, preserves `.env` and SQLite data, rebuilds changed layers, and waits for application
 health before Caddy serves the new container.
+
+Normal application-container or VM restarts do not reset the database. The database is bind-mounted
+from the VM disk, Alembic only applies pending migrations, and the seed command is idempotent. Docker
+and cron start automatically after a reboot, both containers use `restart: unless-stopped`, the
+public IP is static, and Caddy stores its automatically managed TLS state in persistent volumes.
 
 Production secrets are generated directly on the VM and are not stored in Git. The public deployment
 keeps demo mode enabled so reviewers always have working access.

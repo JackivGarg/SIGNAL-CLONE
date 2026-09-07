@@ -102,6 +102,57 @@ def test_registration_requires_unique_phone_and_username(client: TestClient) -> 
     assert duplicate_username.status_code == 409
 
 
+def test_registered_user_can_sign_in_again_with_matching_phone_and_username(
+    client: TestClient,
+) -> None:
+    credentials = {"phone_number": "+15550000003", "username": "returning-user"}
+    first_challenge = client.post("/api/auth/request-otp", json=credentials).json()
+    first_login = client.post(
+        "/api/auth/verify-otp",
+        json={"challenge_id": first_challenge["challenge_id"], "code": "123456"},
+    )
+    assert first_login.status_code == 200
+    user_id = first_login.json()["id"]
+    assert client.post("/api/auth/logout").status_code == 204
+
+    second_challenge_response = client.post("/api/auth/request-otp", json=credentials)
+    assert second_challenge_response.status_code == 200
+    second_login = client.post(
+        "/api/auth/verify-otp",
+        json={
+            "challenge_id": second_challenge_response.json()["challenge_id"],
+            "code": "123456",
+        },
+    )
+    assert second_login.status_code == 200
+    assert second_login.json()["id"] == user_id
+    assert client.get("/api/auth/me").status_code == 200
+
+
+def test_existing_phone_and_username_cannot_be_mixed(client: TestClient) -> None:
+    username_conflict = client.post(
+        "/api/auth/request-otp",
+        json={"phone_number": "+15550000004", "username": "jack"},
+    )
+    assert username_conflict.status_code == 409
+
+    phone_challenge = client.post(
+        "/api/auth/request-otp",
+        json={"phone_number": "+15550000004", "username": "phone-owner"},
+    ).json()
+    assert client.post(
+        "/api/auth/verify-otp",
+        json={"challenge_id": phone_challenge["challenge_id"], "code": "123456"},
+    ).status_code == 200
+    assert client.post("/api/auth/logout").status_code == 204
+
+    phone_conflict = client.post(
+        "/api/auth/request-otp",
+        json={"phone_number": "+15550000004", "username": "different-user"},
+    )
+    assert phone_conflict.status_code == 409
+
+
 def test_username_lookup_accepts_displayed_at_prefix(client: TestClient) -> None:
     assert client.post("/api/auth/demo-login/jack").status_code == 200
     response = client.post("/api/contacts", json={"identifier": " @AVA "})

@@ -48,6 +48,33 @@ def test_message_timestamps_are_returned_as_utc(client: TestClient) -> None:
     assert messages[-1]["sent_at"].endswith("Z")
 
 
+def test_sender_receipt_state_survives_message_history_reload(client: TestClient) -> None:
+    sender = client
+    recipient = TestClient(sender.app)
+    login(sender, "jack")
+    login(recipient, "ava")
+    conversation = next(
+        item for item in sender.get("/api/conversations").json()
+        if item["title"] == "Ava Patel"
+    )
+    message = sender.post(
+        f"/api/conversations/{conversation['id']}/messages",
+        json={"body": "Receipt persistence", "client_message_id": str(uuid4())},
+    ).json()
+
+    assert recipient.post(f"/api/conversations/{conversation['id']}/read").status_code == 200
+    reloaded_message = next(
+        item
+        for item in sender.get(
+            f"/api/conversations/{conversation['id']}/messages"
+        ).json()
+        if item["id"] == message["id"]
+    )
+
+    assert reloaded_message["delivered_at"] is not None
+    assert reloaded_message["read_at"] is not None
+
+
 def test_group_admin_can_promote_member_and_last_admin_is_protected(
     client: TestClient,
 ) -> None:
