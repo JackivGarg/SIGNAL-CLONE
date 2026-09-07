@@ -175,6 +175,11 @@ export const api = {
     request<void>(`/conversations/${encodeURIComponent(conversationId)}/members/${encodeURIComponent(userId)}`, {
       method: "DELETE",
     }),
+  updateGroupMemberRole: (conversationId: string, userId: string, role: "admin" | "member") =>
+    request<GroupMember>(
+      `/conversations/${encodeURIComponent(conversationId)}/members/${encodeURIComponent(userId)}`,
+      { method: "PATCH", body: { role } },
+    ),
   getMessages: (conversationId: string) =>
     request<Message[]>(`/conversations/${encodeURIComponent(conversationId)}/messages`),
   sendMessage: (conversationId: string, body: string, clientMessageId: string) =>

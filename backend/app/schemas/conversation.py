@@ -16,6 +16,10 @@ class AddGroupMemberPayload(BaseModel):
     user_id: str
 
 
+class UpdateGroupMemberPayload(BaseModel):
+    role: str
+
+
 class GroupMemberResponse(BaseModel):
     user_id: str
     display_name: str

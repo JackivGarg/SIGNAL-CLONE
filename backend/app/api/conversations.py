@@ -19,6 +19,7 @@ from app.schemas.conversation import (
     MarkReadResponse,
     MessageResponse,
     SendMessagePayload,
+    UpdateGroupMemberPayload,
 )
 from app.services.conversations import get_member_conversation, serialize_conversation
 from app.services.messages import mark_messages_read, serialize_message
@@ -222,6 +223,50 @@ def remove_group_member(
     db.delete(member)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.patch("/{conversation_id}/members/{user_id}", response_model=GroupMemberResponse)
+def update_group_member(
+    conversation_id: str,
+    user_id: str,
+    payload: UpdateGroupMemberPayload,
+    current_user: CurrentUser,
+    db: DatabaseSession,
+) -> GroupMemberResponse:
+    conversation, _ = require_group_admin(db, conversation_id, current_user.id)
+    try:
+        role = MemberRole(payload.role)
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Role must be admin or member.",
+        ) from error
+
+    member = db.get(ConversationMember, (conversation.id, user_id))
+    user = db.get(User, user_id)
+    if member is None or user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Group member was not found."
+        )
+
+    if member.role == MemberRole.ADMIN and role == MemberRole.MEMBER:
+        other_admin_exists = db.scalar(
+            select(ConversationMember.user_id).where(
+                ConversationMember.conversation_id == conversation.id,
+                ConversationMember.role == MemberRole.ADMIN,
+                ConversationMember.user_id != user_id,
+            )
+        )
+        if other_admin_exists is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A group must keep at least one admin.",
+            )
+
+    member.role = role
+    db.commit()
+    db.refresh(member)
+    return serialize_group_member(member, user)
 
 
 @router.get("/{conversation_id}/messages", response_model=list[MessageResponse])
