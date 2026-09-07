@@ -15,6 +15,7 @@ class User(IdMixin, TimestampMixin, Base):
     bio: Mapped[str | None] = mapped_column(String(140))
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_demo_user: Mapped[bool] = mapped_column(default=False, nullable=False)
+    is_profile_complete: Mapped[bool] = mapped_column(default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -4,8 +4,10 @@ from sqlalchemy import select
 from app.api.deps import CurrentUser, DatabaseSession
 from app.core.config import get_settings
 from app.models.user import User
+from app.schemas.auth import OtpChallengeResponse, RequestOtpPayload, VerifyOtpPayload
 from app.schemas.user import UserResponse
 from app.services.auth import create_session
+from app.services.otp import consume_otp_challenge, create_otp_challenge
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -46,6 +48,31 @@ def login_as_demo_user(identifier: str, response: Response, db: DatabaseSession)
             status_code=status.HTTP_404_NOT_FOUND, detail="Demo account was not found."
         )
 
+    set_session_cookie(response, create_session(db, user))
+    return user
+
+
+@router.post("/request-otp", response_model=OtpChallengeResponse)
+def request_otp(payload: RequestOtpPayload, db: DatabaseSession) -> OtpChallengeResponse:
+    challenge = create_otp_challenge(db, payload.identifier)
+    settings = get_settings()
+    return OtpChallengeResponse(
+        challenge_id=challenge.id,
+        expires_at=challenge.expires_at,
+        demo_code=settings.demo_otp if settings.demo_mode else None,
+    )
+
+
+@router.post("/verify-otp", response_model=UserResponse)
+def verify_otp(payload: VerifyOtpPayload, response: Response, db: DatabaseSession) -> User:
+    challenge = consume_otp_challenge(db, payload.challenge_id, payload.code)
+    user = db.scalar(select(User).where(User.identifier == challenge.identifier))
+    if user is None:
+        user = User(identifier=challenge.identifier, display_name=challenge.identifier)
+        db.add(user)
+        db.flush()
+
+    db.commit()
     set_session_cookie(response, create_session(db, user))
     return user
 

@@ -13,3 +13,4 @@ class UserResponse(BaseModel):
     bio: str | None
     last_seen_at: datetime | None
     is_demo_user: bool
+    is_profile_complete: bool

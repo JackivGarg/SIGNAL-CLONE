@@ -30,10 +30,15 @@ def get_or_create_user(db: DbSession, definition: dict[str, str]) -> User:
     user = db.scalar(select(User).where(User.identifier == definition["identifier"]))
     if user is None:
         user = User(
-            id=stable_id(f"user/{definition['identifier']}"), is_demo_user=True, **definition
+            id=stable_id(f"user/{definition['identifier']}"),
+            is_demo_user=True,
+            is_profile_complete=True,
+            **definition,
         )
         db.add(user)
         db.flush()
+    elif not user.is_profile_complete:
+        user.is_profile_complete = True
     return user
 
 

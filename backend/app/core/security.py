@@ -18,3 +18,11 @@ def hash_session_token(token: str) -> str:
     return hmac.new(
         settings.app_secret.encode("utf-8"), token.encode("utf-8"), hashlib.sha256
     ).hexdigest()
+
+
+def hash_otp_code(challenge_id: str, code: str) -> str:
+    """Bind a fixed demo OTP to one short-lived challenge record."""
+
+    settings = get_settings()
+    payload = f"otp:{challenge_id}:{code}".encode()
+    return hmac.new(settings.app_secret.encode(), payload, hashlib.sha256).hexdigest()
