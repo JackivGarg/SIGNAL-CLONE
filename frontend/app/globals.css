@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f7f8;
-  --foreground: #1b1c1d;
+  --signal-blue: #3a76f0;
+  --signal-blue-dark: #245fd5;
+  --signal-navy: #1f2937;
+  --signal-text: #202124;
+  --signal-muted: #6a6f78;
+  --signal-border: #e7e8eb;
+  --signal-surface: #ffffff;
+  --signal-background: #f5f6f8;
+  --signal-chat-background: #edf1f5;
+  --signal-bubble: #ffffff;
+  --signal-own-bubble: #d9ecff;
+  --signal-radius: 14px;
 }
 
 * {
@@ -16,7 +26,107 @@ body {
 
 body {
   margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--signal-background);
+  color: var(--signal-text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.signal-shell {
+  display: grid;
+  grid-template-columns: 72px minmax(320px, 390px) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.signal-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 10px;
+  border-right: 1px solid var(--signal-border);
+  background: #fafafa;
+}
+
+.signal-rail__spacer {
+  flex: 1;
+}
+
+.signal-sidebar {
+  min-width: 0;
+  border-right: 1px solid var(--signal-border);
+  background: var(--signal-surface);
+}
+
+.signal-main {
+  display: grid;
+  min-width: 0;
+  background: var(--signal-chat-background);
+}
+
+.icon-button {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #59616d;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.icon-button:hover {
+  background: #e9edf2;
+  color: var(--signal-text);
+}
+
+.icon-button--active {
+  background: #dbe9ff;
+  color: var(--signal-blue-dark);
+}
+
+.avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.avatar--ocean { background: linear-gradient(135deg, #2d73b9, #6bb7d6); }
+.avatar--sunset { background: linear-gradient(135deg, #e8794d, #f6c263); }
+.avatar--violet { background: linear-gradient(135deg, #7655b7, #c08ed9); }
+.avatar--forest { background: linear-gradient(135deg, #2c8067, #81b968); }
+.avatar--coral { background: linear-gradient(135deg, #d15e71, #f3a67e); }
+.avatar--sky { background: linear-gradient(135deg, #5185d4, #91c7eb); }
+.avatar--amber { background: linear-gradient(135deg, #bc7f20, #eac65d); }
+.avatar--rose { background: linear-gradient(135deg, #be527f, #ed9db5); }
+
+@media (max-width: 760px) {
+  .signal-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .signal-rail {
+    display: none;
+  }
+
+  .signal-sidebar {
+    display: none;
+  }
 }
