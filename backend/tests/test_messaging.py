@@ -38,6 +38,16 @@ def test_send_message_is_persistent_and_idempotent(client: TestClient) -> None:
     assert len(matching_messages) == 1
 
 
+def test_message_timestamps_are_returned_as_utc(client: TestClient) -> None:
+    login(client, "jack")
+    conversation = client.get("/api/conversations").json()[0]
+    assert conversation["last_message_at"].endswith("Z")
+    assert conversation["last_message"]["sent_at"].endswith("Z")
+
+    messages = client.get(f"/api/conversations/{conversation['id']}/messages").json()
+    assert messages[-1]["sent_at"].endswith("Z")
+
+
 def test_group_admin_can_promote_member_and_last_admin_is_protected(
     client: TestClient,
 ) -> None:
