@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     session_cookie_secure: bool = False
     session_cookie_name: str = "signal_session"
     session_duration_days: int = 30
+    cors_origins: str = "http://localhost:3000"
     turso_database_url: str | None = None
     turso_auth_token: str | None = None
 
@@ -26,6 +27,10 @@ class Settings(BaseSettings):
     @property
     def uses_turso(self) -> bool:
         return bool(self.turso_database_url and self.turso_auth_token)
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache
