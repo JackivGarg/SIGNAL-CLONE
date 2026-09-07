@@ -22,8 +22,8 @@ button { cursor: pointer; }
 
 .signal-shell, .signal-shell--rail { display: grid; grid-template-columns: 100px minmax(350px, 400px) minmax(0, 1fr); min-height: 100vh; }
 .signal-rail-wrap { display: block; min-width: 0; }
-.signal-rail { display: flex; height: 100vh; flex-direction: column; align-items: center; border-right: 1px solid #2a2a2b; background: var(--signal-rail); padding: 16px 14px 20px; }
-.signal-rail__tabs { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 8px; margin-top: 8px; }.signal-rail__tabs .icon-button:last-child { margin-top: auto; }.signal-rail--collapsed .signal-rail__tabs { display: none; }
+.signal-rail { display: flex; height: 100vh; flex-direction: column; align-items: flex-end; border-right: 1px solid #2a2a2b; background: var(--signal-rail); padding: 16px 14px 20px; transition: align-items 160ms ease; }
+.signal-rail__tabs { display: flex; flex: 1; width: 100%; flex-direction: column; align-items: center; gap: 8px; margin-top: 8px; }.signal-rail__tabs .icon-button:last-child { margin-top: auto; }.signal-rail--collapsed { align-items: flex-start; }.signal-rail--collapsed .signal-rail__tabs { display: none; }
 .signal-sidebar { min-width: 0; border-right: 1px solid #2c2c2d; background: var(--signal-sidebar); }
 .signal-main { display: grid; min-width: 0; background: var(--signal-panel); }
 
