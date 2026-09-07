@@ -17,7 +17,14 @@ export function Avatar({ name, avatarKey = "sky", size = 40 }: AvatarProps) {
       aria-label={name}
       className={`avatar avatar--${avatarKey}`}
       role="img"
-      style={{ height: size, width: size }}
+      style={{
+        aspectRatio: "1 / 1",
+        flex: `0 0 ${size}px`,
+        height: size,
+        minHeight: size,
+        minWidth: size,
+        width: size,
+      }}
     >
       {initials}
     </span>
