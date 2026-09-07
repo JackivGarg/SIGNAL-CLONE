@@ -54,6 +54,14 @@ export type ReceiptUpdate = {
   occurred_at: string | null;
 };
 
+export type GroupMember = {
+  user_id: string;
+  display_name: string;
+  avatar_key: string;
+  role: "admin" | "member";
+  joined_at: string;
+};
+
 export type RealtimeEvent =
   | { type: "connection.ready"; user_id: string; online_contact_ids: string[] }
   | { type: "message.created"; message: Message }
@@ -116,6 +124,7 @@ async function request<T>(path: string, options: ApiOptions = {}): Promise<T> {
     throw new ApiError(errorBody?.detail ?? "Something went wrong. Please try again.", response.status);
   }
 
+  if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
 
@@ -148,6 +157,22 @@ export const api = {
     request<ConversationPreview>("/conversations/direct", {
       method: "POST",
       body: { user_id: userId },
+    }),
+  createGroupConversation: (title: string, memberIds: string[]) =>
+    request<ConversationPreview>("/conversations/groups", {
+      method: "POST",
+      body: { title, member_ids: memberIds },
+    }),
+  getGroupMembers: (conversationId: string) =>
+    request<GroupMember[]>(`/conversations/${encodeURIComponent(conversationId)}/members`),
+  addGroupMember: (conversationId: string, userId: string) =>
+    request<GroupMember>(`/conversations/${encodeURIComponent(conversationId)}/members`, {
+      method: "POST",
+      body: { user_id: userId },
+    }),
+  removeGroupMember: (conversationId: string, userId: string) =>
+    request<void>(`/conversations/${encodeURIComponent(conversationId)}/members/${encodeURIComponent(userId)}`, {
+      method: "DELETE",
     }),
   getMessages: (conversationId: string) =>
     request<Message[]>(`/conversations/${encodeURIComponent(conversationId)}/messages`),

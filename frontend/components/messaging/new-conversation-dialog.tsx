@@ -13,6 +13,9 @@ type NewConversationDialogProps = {
 
 export function NewConversationDialog({ onClose, onCreated }: NewConversationDialogProps) {
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [mode, setMode] = useState<"direct" | "group">("direct");
+  const [groupTitle, setGroupTitle] = useState("");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -41,6 +44,18 @@ export function NewConversationDialog({ onClose, onCreated }: NewConversationDia
     }
   }
 
+  async function createGroup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy("create-group");
+    setError(null);
+    try {
+      onCreated(await api.createGroupConversation(groupTitle, selectedMemberIds));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not create the group.");
+      setBusy(null);
+    }
+  }
+
   async function addContact(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy("add-contact");
@@ -52,7 +67,12 @@ export function NewConversationDialog({ onClose, onCreated }: NewConversationDia
         contact,
       ]);
       setIdentifier("");
-      await createConversation(contact);
+      if (mode === "group") {
+        setSelectedMemberIds((memberIds) => [...new Set([...memberIds, contact.id])]);
+        setBusy(null);
+      } else {
+        await createConversation(contact);
+      }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not add that contact.");
       setBusy(null);
@@ -69,8 +89,12 @@ export function NewConversationDialog({ onClose, onCreated }: NewConversationDia
       <section className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
         <header className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold" id="new-message-title">New message</h2>
-            <p className="mt-1 text-sm text-slate-500">Start a secure direct conversation.</p>
+            <h2 className="text-lg font-semibold" id="new-message-title">
+              {mode === "direct" ? "New message" : "New group"}
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {mode === "direct" ? "Start a secure direct conversation." : "Choose members and name your group."}
+            </p>
           </div>
           <button
             aria-label="Close"
@@ -81,6 +105,11 @@ export function NewConversationDialog({ onClose, onCreated }: NewConversationDia
             <X size={19} />
           </button>
         </header>
+        <div className="mt-4 flex rounded-xl bg-slate-100 p-1 text-sm font-medium">
+          <button className={`flex-1 rounded-lg py-2 ${mode === "direct" ? "bg-white shadow-sm" : "text-slate-500"}`} onClick={() => setMode("direct")} type="button">Message</button>
+          <button className={`flex-1 rounded-lg py-2 ${mode === "group" ? "bg-white shadow-sm" : "text-slate-500"}`} onClick={() => setMode("group")} type="button">Group</button>
+        </div>
+        {mode === "group" && <input className="mt-4 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400" onChange={(event) => setGroupTitle(event.target.value)} placeholder="Group name" required value={groupTitle} />}
         <label className="relative mt-5 block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
           <input
@@ -98,7 +127,7 @@ export function NewConversationDialog({ onClose, onCreated }: NewConversationDia
               className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left hover:bg-slate-50 disabled:opacity-60"
               disabled={busy !== null}
               key={contact.id}
-              onClick={() => createConversation(contact)}
+              onClick={() => mode === "group" ? setSelectedMemberIds((memberIds) => memberIds.includes(contact.id) ? memberIds.filter((memberId) => memberId !== contact.id) : [...memberIds, contact.id]) : createConversation(contact)}
               type="button"
             >
               <Avatar avatarKey={contact.avatar_key} name={contact.display_name} size={40} />
@@ -106,10 +135,11 @@ export function NewConversationDialog({ onClose, onCreated }: NewConversationDia
                 <span className="block truncate text-sm font-medium">{contact.display_name}</span>
                 <span className="block truncate text-xs text-slate-500">@{contact.identifier}</span>
               </span>
-              {busy === contact.id && <LoaderCircle className="animate-spin text-blue-600" size={17} />}
+              {mode === "group" && selectedMemberIds.includes(contact.id) ? <span className="text-xs font-semibold text-blue-600">Added</span> : busy === contact.id && <LoaderCircle className="animate-spin text-blue-600" size={17} />}
             </button>
           ))}
         </div>
+        {mode === "group" && <form onSubmit={createGroup}><button className="mt-4 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60" disabled={!groupTitle.trim() || !selectedMemberIds.length || busy !== null} type="submit">{busy === "create-group" ? "Creating…" : `Create group (${selectedMemberIds.length + 1})`}</button></form>}
         <form className="mt-4 border-t border-slate-100 pt-4" onSubmit={addContact}>
           <label className="text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="new-contact">
             Add a registered user
