@@ -14,6 +14,7 @@ type MessagePanelProps = {
   onMessageSent: (message: Message) => void;
   onMessagesRead: () => void;
   onTypingChange: (isTyping: boolean) => void;
+  onDetails: () => void;
   receiptUpdates: Record<string, "delivered" | "read">;
   typing: boolean;
 };
@@ -29,6 +30,7 @@ export function MessagePanel({
   onMessageSent,
   onMessagesRead,
   onTypingChange,
+  onDetails,
   receiptUpdates,
   typing,
 }: MessagePanelProps) {
@@ -165,6 +167,7 @@ export function MessagePanel({
         <button
           aria-label="Conversation details"
           className="grid size-9 place-items-center rounded-full text-slate-500 hover:bg-slate-100"
+          onClick={onDetails}
           type="button"
         >
           <Info size={20} />

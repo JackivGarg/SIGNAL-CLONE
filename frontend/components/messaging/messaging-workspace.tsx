@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { ConversationSidebar } from "@/components/messaging/conversation-sidebar";
 import { MessagePanel } from "@/components/messaging/message-panel";
+import { GroupDetailsDialog } from "@/components/messaging/group-details-dialog";
 import { NewConversationDialog } from "@/components/messaging/new-conversation-dialog";
 import {
   api,
@@ -29,6 +30,7 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
   const [lastIncomingMessage, setLastIncomingMessage] = useState<Message | null>(null);
   const [receiptUpdates, setReceiptUpdates] = useState<Record<string, ReceiptUpdate["status"]>>({});
   const [typingConversationId, setTypingConversationId] = useState<string | null>(null);
+  const [isGroupDetailsOpen, setIsGroupDetailsOpen] = useState(false);
 
   useEffect(() => {
     api
@@ -159,6 +161,7 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
           key={selectedConversation.id}
           onMessageSent={updateConversationFromMessage}
           onMessagesRead={clearSelectedUnreadCount}
+          onDetails={() => selectedConversation.kind === "group" && setIsGroupDetailsOpen(true)}
           onTypingChange={(isTyping) =>
             sendEvent({
               type: isTyping ? "typing.started" : "typing.stopped",
@@ -183,6 +186,9 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
           onClose={() => setIsNewConversationOpen(false)}
           onCreated={selectCreatedConversation}
         />
+      )}
+      {isGroupDetailsOpen && selectedConversation?.kind === "group" && (
+        <GroupDetailsDialog conversation={selectedConversation} currentUser={user} onClose={() => setIsGroupDetailsOpen(false)} />
       )}
     </AppShell>
   );
