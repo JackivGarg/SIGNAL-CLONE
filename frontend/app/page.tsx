@@ -60,5 +60,13 @@ export default function HomePage() {
     return <ProfileSetup onComplete={setUser} user={user} />;
   }
 
-  return <MessagingWorkspace user={user} />;
+  return (
+    <MessagingWorkspace
+      onLogout={() => {
+        setUser(null);
+        setState("unauthenticated");
+      }}
+      user={user}
+    />
+  );
 }

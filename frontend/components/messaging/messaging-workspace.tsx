@@ -8,6 +8,7 @@ import { ConversationSidebar } from "@/components/messaging/conversation-sidebar
 import { MessagePanel } from "@/components/messaging/message-panel";
 import { GroupDetailsDialog } from "@/components/messaging/group-details-dialog";
 import { NewConversationDialog } from "@/components/messaging/new-conversation-dialog";
+import { SettingsDialog } from "@/components/messaging/settings-dialog";
 import {
   api,
   type ConversationPreview,
@@ -19,10 +20,11 @@ import {
 import { useRealtime } from "@/lib/use-realtime";
 
 type MessagingWorkspaceProps = {
+  onLogout: () => void;
   user: User;
 };
 
-export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
+export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) {
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,6 +33,7 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
   const [receiptUpdates, setReceiptUpdates] = useState<Record<string, ReceiptUpdate["status"]>>({});
   const [typingConversationId, setTypingConversationId] = useState<string | null>(null);
   const [isGroupDetailsOpen, setIsGroupDetailsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     api
@@ -142,6 +145,7 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
           conversations={conversations}
           isLoading={isLoading}
           onNewMessage={() => setIsNewConversationOpen(true)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
           onSelect={setSelectedConversationId}
           selectedConversationId={selectedConversationId}
           user={user}
@@ -189,6 +193,9 @@ export function MessagingWorkspace({ user }: MessagingWorkspaceProps) {
       )}
       {isGroupDetailsOpen && selectedConversation?.kind === "group" && (
         <GroupDetailsDialog conversation={selectedConversation} currentUser={user} onClose={() => setIsGroupDetailsOpen(false)} />
+      )}
+      {isSettingsOpen && (
+        <SettingsDialog onClose={() => setIsSettingsOpen(false)} onLogout={onLogout} user={user} />
       )}
     </AppShell>
   );

@@ -130,6 +130,7 @@ async function request<T>(path: string, options: ApiOptions = {}): Promise<T> {
 
 export const api = {
   getCurrentUser: () => request<User>("/auth/me"),
+  logout: () => request<void>("/auth/logout", { method: "POST" }),
   getDemoUsers: () => request<User[]>("/auth/demo-users"),
   loginAsDemoUser: (identifier: string) =>
     request<User>(`/auth/demo-login/${encodeURIComponent(identifier)}`, { method: "POST" }),

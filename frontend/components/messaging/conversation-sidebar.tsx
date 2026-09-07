@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit3, MoreVertical, Search, UsersRound } from "lucide-react";
+import { Edit3, MoreVertical, Search, Settings, UsersRound } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { ConversationPreview } from "@/lib/api";
@@ -12,6 +12,7 @@ type ConversationSidebarProps = {
   conversations: ConversationPreview[];
   isLoading: boolean;
   onNewMessage: () => void;
+  onOpenSettings: () => void;
   onSelect: (conversationId: string) => void;
   selectedConversationId: string | null;
   user: User;
@@ -32,6 +33,7 @@ export function ConversationSidebar({
   conversations,
   isLoading,
   onNewMessage,
+  onOpenSettings,
   onSelect,
   selectedConversationId,
   user,
@@ -67,8 +69,9 @@ export function ConversationSidebar({
           <IconButton label="New message" onClick={onNewMessage}>
             <Edit3 size={19} />
           </IconButton>
-          <IconButton label="More options">
-            <MoreVertical size={19} />
+          <IconButton label="Settings" onClick={onOpenSettings}>
+            <Settings className="hidden sm:block" size={19} />
+            <MoreVertical className="sm:hidden" size={19} />
           </IconButton>
         </div>
       </header>

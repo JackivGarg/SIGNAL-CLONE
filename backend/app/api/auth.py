@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 from sqlalchemy import select
 
 from app.api.deps import CurrentUser, DatabaseSession
@@ -11,7 +11,7 @@ from app.schemas.auth import (
     VerifyOtpPayload,
 )
 from app.schemas.user import UserResponse
-from app.services.auth import create_session
+from app.services.auth import create_session, delete_session
 from app.services.otp import consume_otp_challenge, create_otp_challenge
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -98,3 +98,18 @@ def update_profile(
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: CurrentUser) -> User:
     return current_user
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(request: Request, db: DatabaseSession) -> Response:
+    settings = get_settings()
+    delete_session(db, request.cookies.get(settings.session_cookie_name))
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    response.delete_cookie(
+        key=settings.session_cookie_name,
+        httponly=True,
+        secure=settings.session_cookie_secure,
+        samesite="lax",
+        path="/",
+    )
+    return response
