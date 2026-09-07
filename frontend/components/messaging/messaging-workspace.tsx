@@ -19,13 +19,16 @@ import {
   type User,
 } from "@/lib/api";
 import { useRealtime } from "@/lib/use-realtime";
+import type { ThemePreference } from "@/lib/use-theme";
 
 type MessagingWorkspaceProps = {
+  onThemeChange: (theme: ThemePreference) => void;
   onLogout: () => void;
+  theme: ThemePreference;
   user: User;
 };
 
-export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) {
+export function MessagingWorkspace({ onLogout, user, theme, onThemeChange }: MessagingWorkspaceProps) {
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -256,7 +259,13 @@ export function MessagingWorkspace({ onLogout, user }: MessagingWorkspaceProps) 
         <GroupDetailsDialog conversation={selectedConversation} currentUser={user} onClose={() => setIsGroupDetailsOpen(false)} />
       )}
       {isSettingsOpen && (
-        <SettingsDialog onClose={() => setIsSettingsOpen(false)} onLogout={onLogout} user={user} />
+        <SettingsDialog
+          onClose={() => setIsSettingsOpen(false)}
+          onLogout={onLogout}
+          onThemeChange={onThemeChange}
+          theme={theme}
+          user={user}
+        />
       )}
       {notice && <div className="signal-toast" role="status">{notice}</div>}
     </AppShell>

@@ -7,8 +7,10 @@ import { AuthScreen } from "@/components/auth/auth-screen";
 import { ProfileSetup } from "@/components/auth/profile-setup";
 import { MessagingWorkspace } from "@/components/messaging/messaging-workspace";
 import { ApiError, api, type User } from "@/lib/api";
+import { useTheme } from "@/lib/use-theme";
 
 export default function HomePage() {
+  const { theme, setTheme } = useTheme();
   const [user, setUser] = useState<User | null>(null);
   const [demoUsers, setDemoUsers] = useState<User[]>([]);
   const [state, setState] = useState<"loading" | "authenticated" | "unauthenticated" | "error">(
@@ -69,6 +71,8 @@ export default function HomePage() {
         setState("unauthenticated");
       }}
       user={user}
+      theme={theme}
+      onThemeChange={setTheme}
     />
   );
 }
